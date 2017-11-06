@@ -1,0 +1,206 @@
+/* General */
+html, body { height: 100%; }
+
+/* ACFlexGrid */
+ac-flexgrid, ac-labsys, ac-querywindow, ac-tablemanager, ac-samplewindow, ac-chartwindow, ls-scriptwindow { display: table; width: 100%; height: 100%; table-layout: fixed; }
+ac-flexgridrow { display: table-row; }
+ac-flexgridcell { display: table-cell; }
+ac-flexgridsizer { z-index: 10; }
+ac-flexgridsizer.lr { display: block; width: 7px; height: 100%; /*background-color: lime;*/ margin-left: -4px; cursor: col-resize; position: relative; }
+ac-flexgridsizer.ud { display: block; width: 100%; height: 7px; /*background-color: orange;*/ margin-top: -4px; cursor: row-resize; position: relative; }
+ac-flexgridsizer:active { /*cursor: col-resize !important; background-color: pink;*/ }
+
+/* ACActionBar, ACMenuBar, ACNavBar, ACToolBar */
+.navbar { margin-bottom: 0px; border-radius: 0px; }
+.navbar a { cursor: default; }
+.navbar-inverse, .navbar-default { border-bottom-width: 0px; border-top-width: 0px; border-left-width: 0px; border-right-width: 0px; border-color: #ddd; }
+.navbar-inverse { background-color: rgb(0, 149, 143); color: white; } /* colorchange begins here */
+.navbar-inverse .navbar-brand { color: white; }
+.navbar-inverse .navbar-nav>li>a { color: white; }
+.navbar-inverse .navbar-nav>.open>a, .navbar-inverse .navbar-nav>.open>a:focus { background-color: rgb(0, 109, 103); }
+.navbar-inverse .navbar-nav>.dropdown>a:hover { background-color: rgb(0, 129, 123); }
+.navbar-inverse .navbar-nav>.open>a:hover { background-color: rgb(0, 109, 103); }
+
+/* NavBar lighter */
+.navbar-inverse.lighter { background-color: rgb(176, 234, 231); color: black; } /* colorchange begins here */
+.navbar-inverse.lighter .navbar-brand { color: black; }
+.navbar-inverse.lighter .navbar-nav>li>a { color: black; }
+.navbar-inverse.lighter .navbar-nav>.open>a, .navbar-inverse .navbar-nav>.open>a:focus { background-color: rgb(136, 194, 191); color: black; }
+.navbar-inverse.lighter .navbar-nav>.dropdown>a:hover { background-color: rgb(156, 214, 211); }
+.navbar-inverse.lighter .navbar-nav>.open>a:hover { background-color: rgb(136, 194, 191); }
+
+/* ACMenuBar */
+ac-menubar { min-height: auto !important; }
+ac-menubar.navbar-brand { padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; height: auto; font-size: inherit; font-weight: bold; }
+ac-menubar .navbar-nav>li>a { padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; }
+
+/* ACToolBar */
+.ToolBar { min-height: auto; padding-left: 4px; }
+.ToolBar .navbar-nav>li>a { padding: 8px 4px; }
+.ToolBar .navbar-nav>li>a .bebox { width: 52px; height: 52px; padding: 8px; border-radius: 25px; background-position: center center; background-repeat: no-repeat; background-color: rgb(192,192,192); border: 1px solid #ddd; }
+.ToolBar.lighter .navbar-nav>li>a:hover { background-color: rgb(156, 214, 211); }
+.ToolBar .navbar-nav>li>a:hover .bebox { box-shadow: inset 0 0 24px #ddd; }
+
+/* ACMapView */
+ac-mapview { display: block; width: 100%; height: 500px; }
+
+/* ACNotebook */
+ac-notebook { display: block; height: 100%; }
+ac-notebook .btn-group { margin-left: 12px; margin-top: 12px; }
+
+/* Notebook Pager */
+.pager { margin: 12px 0; }
+.pager .btn.active.focus, .pager .btn.active:focus, .pager .btn.focus, .pager .btn:active.focus, .pager .btn:active:focus, .pager .btn:focus{border-color:rgb(221, 221, 221);background-color: rgb(248, 248, 248); outline:none;outline-offset:-2px; box-shadow: none; -webkit-box-shadow: none;}
+.pager .btn.active {border-color:rgb(221, 221, 221);background-color: rgb(248, 248, 248); box-shadow: none; -webkit-box-shadow: none;}
+.pager .btn {border-color:rgb(221, 221, 221);}
+.pager .btn:hover{border-color:rgb(221, 221, 221);}
+
+/* ACKeyValueView */
+.KeyValueView { margin: 0px auto; width: auto; }
+.KeyValueView tr:first-child th, .KeyValueView tr:first-child td { border-top: 0}
+.KeyValueView>tbody>tr>td, .KeyValueView>tbody>tr>th, .KeyValueView>tfoot>tr>td, .KeyValueView>tfoot>tr>th, .KeyValueView>thead>tr>td, .KeyValueView>thead>tr>th { vertical-align: middle; }
+.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th { border-top: 0px; padding: 4px;  }
+.unbreakable {
+-webkit-column-break-inside: avoid;
+          page-break-inside: avoid;
+               break-inside: avoid;
+}
+
+/* Input */
+.input-sm { border-radius: 0px; }
+
+/* Dropdown Menu */
+.dropdown-menu { border-radius: 0; padding: 0; /*min-width: 120px;*/ }
+.dropdown-menu>li>a { /*padding: 3px 8px;*/ }
+
+/* ACTreeView */
+/*ac-treeview>ac-treeviewnodelist { padding: 2px 0 0 20px; width: 300px; }
+ac-treeviewnodelist { display: block; margin: 0px 0px 10px 0px; padding: 0px 0px 0px 30px; -webkit-margin-after: 10px; -webkit-padding-start: 30px; }
+ac-treeviewnodelist:empty { display: none; }
+ac-treeviewnode { position: relative; margin-left: -15px; list-style: none; display: list-item; }
+ac-treeviewnode input
+{
+	position: absolute;
+	left: 0;
+	margin-left: 0;
+	opacity: 0;
+	z-index: 2;
+	cursor: pointer;
+	height: 1em;
+	width: 1em;
+	top: 0;
+}
+	ac-treeviewnode input + ac-treeviewnodelist
+	{
+		margin-top: 0px auto;
+		background: url(../rsrc/tree/toggle-small-expand.png) 40px 2px no-repeat;
+		margin: -20px 0 0.4em -44px;
+		height: 1em;
+	}
+	ac-treeviewnode input + ac-treeviewnodelist > ac-treeviewnode { display: none; margin-left: -14px !important; padding-left: 1px; }
+ac-treeviewnode label
+{
+	white-space: nowrap;
+	background: url(../rsrc/tree/folder-horizontal.png) 15px 1px no-repeat;
+	cursor: pointer;
+	display: inline-block;
+	padding-left: 37px;
+	margin-bottom: 0px !important; 
+	font-weight: normal !important;
+}
+ac-treeviewnode label.sample.U { background-image: url(../bmp/24x16/unreceivedSample.bmp) }
+ac-treeviewnode label.sample.I { background-image: url(../bmp/24x16/inprogressSample.bmp) }
+ac-treeviewnode label.sample.P { background-image: url(../bmp/24x16/incompleteSample.bmp) }
+ac-treeviewnode label.sample.C { background-image: url(../bmp/24x16/completeSample.bmp) }
+ac-treeviewnode label.sample.A { background-image: url(../bmp/24x16/statusAuthorized.bmp) }
+ac-treeviewnode label.sample.R { background-image: url(../bmp/24x16/statusRejected.bmp) }
+ac-treeviewnode label.sample.X { background-image: url(../bmp/24x16/statusCanceled.bmp) }
+
+ac-treeviewnode label.test.I { background-image: url(../bmp/24x16/receivedTest.bmp) }
+ac-treeviewnode label.test.P { background-image: url(../bmp/24x16/inprogressTest.bmp) }
+ac-treeviewnode label.test.C { background-image: url(../bmp/24x16/completeTest.bmp) }
+ac-treeviewnode label.test.A { background-image: url(../bmp/24x16/statusAuthorized.bmp) }
+ac-treeviewnode label.test.R { background-image: url(../bmp/24x16/statusRejected.bmp) }
+ac-treeviewnode label.test.X { background-image: url(../bmp/24x16/canceledTest.bmp) }
+
+ac-treeviewnode label.result.N { background-image: url(../bmp/24x16/incompleteResult.bmp) }
+ac-treeviewnode label.result.E { background-image: url(../bmp/24x16/completeResult.bmp) }
+ac-treeviewnode label.result.M { background-image: url(../bmp/24x16/statusModified.bmp) }
+ac-treeviewnode label.result.A { background-image: url(../bmp/24x16/statusAuthorized.bmp) }
+ac-treeviewnode label.result.R { background-image: url(../bmp/24x16/statusRejected.bmp) }
+ac-treeviewnode label.result.X { background-image: url(../bmp/24x16/canceledResult.bmp) }
+
+ac-treeviewnode input:checked + ac-treeviewnodelist
+{
+	background: url(../rsrc/tree/toggle-small.png) 40px 5px no-repeat;
+	margin: -23px 0 0.4em -44px;
+	padding: 1.563em 0 0 80px;
+	height: auto;
+}
+	ac-treeviewnode input:checked + ac-treeviewnodelist > ac-treeviewnode { display: block; }
+	ac-treeviewnode input:checked + ac-treeviewnodelist > ac-treeviewnode:last-child { }
+*/
+
+/* ACOnOffSwitch */
+ac-onoffswitch {
+	display: block;
+    position: relative; width: 54px;
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+}
+ac-onoffswitch input {
+    position: absolute;
+    left: 0;
+    width: 0px;
+    /*visibility: hidden;*/
+}
+ac-onoffswitch label {
+    display: block; overflow: hidden; cursor: pointer;
+    height: 30px; padding: 0; line-height: 30px;
+    border: 2px solid #CCCCCC; border-radius: 30px;
+	margin-bottom: 0px;
+    background-color: #FFFFFF;
+    transition: background-color 0.3s ease-in;
+}
+ac-onoffswitch label:before {
+    content: "";
+    display: block; width: 30px; margin: 0px;
+    background: #FFFFFF;
+    position: absolute; top: 0; bottom: 0;
+    right: 24px;
+    border: 2px solid #CCCCCC; border-radius: 36px;
+    transition: all 0.1s ease-in 0s; 
+}
+ac-onoffswitch label.active {
+	/*outline: 5px auto -webkit-focus-ring-color;*/
+	box-shadow: 0 0 1pt 1pt rgb(102, 175, 233);
+}
+ac-onoffswitch>input:checked + label {
+    background-color: #49E845;
+}
+ac-onoffswitch>input:checked + label, ac-onoffswitch>input[type=checkbox]:checked + label:before {
+   border-color: #49E845;
+}
+ac-onoffswitch>input:checked + label:before {
+    right: 0px; 
+}
+
+.ace_scroller { border-bottom: 1px solid #ddd; }
+
+/* Bootstrap Fix */
+.glyphicon { top: 0px; }
+.btn:focus { outline: none; }
+
+/* ACListBox */
+ac-listbox.list-group { display: block; margin-bottom: 0px; height: 100%; border-color: #ddd; border-style: solid; border-width: 0px; }
+.list-group-item:first-child { border-radius: 0px; border-top: 0px; }
+.list-group-item:last-child { border-radius: 0px; border-bottom: 0px; }
+.list-group-item { border-right: 0px; border-left: 0px; }
+.list-group-item:focus { outline: none; }
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: rgb(248, 248, 248); color: inherit; border-color: inherit; }
+ls-scriptwindow .list-group-item:last-child { border-bottom: 1px solid #ddd }
+
+/* ACBrowseDialog */
+ac-browsedialog tbody>tr>th:first-child, ac-browsedialog tbody>tr>td:first-child { padding-left: 15px; }
+ac-browsedialog tbody>tr>th:last-child, ac-browsedialog tbody>tr>td:last-child { padding-right: 15px; border-right: 0px; }
+ac-browsedialog tbody>tr:last-child td { border-bottom: 0px; }
+ac-browsedialog tr.last-item td { border-bottom: 0px; }
