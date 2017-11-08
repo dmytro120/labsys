@@ -105,12 +105,20 @@ class LSQueryWindow extends ACFlexGrid
 		this.cell(0,0).style.minHeight = this.cell(0,0).style.height = cr.height + 'px';
 		
 		DB.query(query, result => {
-			var table = document.createElement('table');
-			table.classList.add('table', 'table-hover', 'table-condensed');
-			table.style.width = 'auto';
-			table.style.margin = '0 auto';
-			var tbody = document.createElement('tbody');
-			table.appendChild(tbody);
+			if ((result.length && result.length > 0) || Object.keys(result).length > 0) { 
+				var table = document.createElement('table');
+				table.classList.add('table', 'table-hover', 'table-condensed');
+				table.style.width = 'auto';
+				table.style.margin = '0 auto';
+				var tbody = document.createElement('tbody');
+				table.appendChild(tbody);
+			} else {
+				var table = document.createElement('div');
+				table.style.color = 'grey';
+				table.style.textAlign = 'center';
+				table.textContent = 'nothing found';
+				table.style.padding = '8px';
+			}
 			
 			if (result instanceof Array) {
 				for (var i = 0; i < result.length; i++) {
@@ -388,4 +396,4 @@ class LSQueryWindowTools
     }
 }
 
-window.customElements.define('ac-querywindow', LSQueryWindow);
+window.customElements.define('ls-querywindow', LSQueryWindow);

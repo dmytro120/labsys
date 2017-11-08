@@ -7,7 +7,7 @@ class LabSys extends ACApp
 		super();
 		
 		this.setName('LabSys');
-		this.setVersion('0.0.3');
+		this.setVersion('0.0.4');
 		this.setLayout(['82px', 'auto'], ['100%']);
 		
 		this.mainCell = this.cell(1,0);
@@ -58,22 +58,45 @@ class LabSys extends ACApp
 			{caption: 'Query', icon: 'db.png', action: this.initMode.bind(this, LSQueryWindow) },
 			{caption: 'Scripts', icon: 'script2.png', action: this.initMode.bind(this, LSScriptWindow) },
 			{caption: 'Charts', icon: 'chart.png', action: this.initMode.bind(this, LSChartWindow) },
-			{caption: 'Map', icon: 'globe.png', action: this.initMode.bind(this, ACMapView) },
-			{caption: 'Info', icon: 'info.png', action: this.about.bind(this) }
+			{caption: 'Map', icon: 'globe.png', action: this.initMode.bind(this, ACMapView) }/*,
+			{caption: 'Info', icon: 'info.png', action: this.about.bind(this) }*/
 		]);
+		
+		var captionCtrl = tb.setCaption(this.name.toLowerCase());
+		captionCtrl.style.fontFamily = 'FuturaO';
+		captionCtrl.addEventListener('click', e => {
+			this.about();
+		});
+		
+		var versionCtrl = new ACStaticCell(captionCtrl);
+		versionCtrl.style.position = 'absolute';
+		versionCtrl.style.fontSize = '8pt';
+		/*versionCtrl.style.top = '20px';
+		versionCtrl.style.right = '8px';*/
+		versionCtrl.style.top = '63px';
+		versionCtrl.style.right = '5px';
+		versionCtrl.style.lineHeight = '8pt';
+		versionCtrl.style.fontWeight = 'bold';
+		versionCtrl.textContent = this.version;
 		
 		this.activeMode = null;
 		this.modes = {};
 		
-		var p = AC.create('p', this.mainCell);
-		p.style.fontSize = '72pt';
-		p.style.textAlign = 'center';
-		p.style.color = '#ddd';
-		p.textContent = this.name + ' ' + this.version;
+		this.drawAtom();
 		
 		window.onbeforeunload = e => {
 			if (this.activeMode && this.activeMode.onDetached) this.activeMode.onDetached.call(this.activeMode);
 		};
+	}
+	
+	drawAtom()
+	{
+		var p = AC.create('p', this.mainCell);
+		p.style.fontSize = '288pt';
+		p.style.textAlign = 'center';
+		p.style.color = '#ddd';
+		p.textContent = '⚛'; //this.name + ' ' + this.version;
+		p.style.userSelect = 'none';
 	}
 	
 	onAppCommand(command)
@@ -104,6 +127,7 @@ class LabSys extends ACApp
 		if (!mode) {
 			this.activeMode = null;
 			this.mainCell.clear();
+			this.drawAtom();
 			return;
 		}
 		
@@ -186,4 +210,4 @@ class LabSys extends ACApp
 	}
 }
 
-window.customElements.define('ac-labsys', LabSys);
+window.customElements.define('ls-labsys', LabSys);

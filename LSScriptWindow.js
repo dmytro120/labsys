@@ -74,7 +74,7 @@ class LSScriptWindow extends ACFlexGrid
 		var wasSameItemFound = false;
 		this.listBox.clear();
 		
-		var scripts = localStorage.getItem('scripts');
+		var scripts = localStorage.getItem('LSScriptWindowScripts');
 		if (scripts) {
 			try {
 				var scripts = JSON.parse(scripts);
@@ -278,7 +278,7 @@ class LSScriptWindow extends ACFlexGrid
 			scripts[id] = item.value;
 		}
 		
-		localStorage.setItem('scripts', JSON.stringify(scripts));
+		localStorage.setItem('LSScriptWindowScripts', JSON.stringify(scripts));
 	}
 	
 	exit()

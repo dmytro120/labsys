@@ -1,8 +1,12 @@
 /* General */
 html, body { height: 100%; }
+@font-face {
+	font-family: FuturaO;
+	src: url(../fonts/f.ttf);
+}
 
 /* ACFlexGrid */
-ac-flexgrid, ac-labsys, ac-querywindow, ac-tablemanager, ac-samplewindow, ac-chartwindow, ls-scriptwindow { display: table; width: 100%; height: 100%; table-layout: fixed; }
+ac-flexgrid, ls-labsys, ls-querywindow, ls-tablemanager, ls-samplewindow, ls-chartwindow, ls-scriptwindow { display: table; width: 100%; height: 100%; table-layout: fixed; }
 ac-flexgridrow { display: table-row; }
 ac-flexgridcell { display: table-cell; }
 ac-flexgridsizer { z-index: 10; }
@@ -40,6 +44,8 @@ ac-menubar .navbar-nav>li>a { padding-top: 2px; padding-bottom: 2px; padding-lef
 .ToolBar .navbar-nav>li>a .bebox { width: 52px; height: 52px; padding: 8px; border-radius: 25px; background-position: center center; background-repeat: no-repeat; background-color: rgb(192,192,192); border: 1px solid #ddd; }
 .ToolBar.lighter .navbar-nav>li>a:hover { background-color: rgb(156, 214, 211); }
 .ToolBar .navbar-nav>li>a:hover .bebox { box-shadow: inset 0 0 24px #ddd; }
+.ToolBar .caption { float: right; font-size: 36pt; line-height: 84px; padding-right: 8px; user-select: none; color: #e9e9e9; }
+.ToolBar .caption:hover { color: #f6f6f6; }
 
 /* ACMapView */
 ac-mapview { display: block; width: 100%; height: 500px; }

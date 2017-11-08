@@ -96,4 +96,4 @@ class LSChartWindow extends ACFlexGrid
 	}
 }
 
-window.customElements.define('ac-chartwindow', LSChartWindow);
+window.customElements.define('ls-chartwindow', LSChartWindow);

@@ -218,4 +218,4 @@ class LSSampleWindow extends ACFlexGrid
 	}
 }
 
-window.customElements.define('ac-samplewindow', LSSampleWindow);
+window.customElements.define('ls-samplewindow', LSSampleWindow);

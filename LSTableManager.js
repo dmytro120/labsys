@@ -500,4 +500,4 @@ class LSTableManager extends ACFlexGrid
 	}
 }
 
-window.customElements.define('ac-tablemanager', LSTableManager);
+window.customElements.define('ls-tablemanager', LSTableManager);

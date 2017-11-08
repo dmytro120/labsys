@@ -61,6 +61,16 @@ class ACToolBar extends ACControl
 		}, this);
 	}
 	
+	setCaption(caption)
+	{
+		if (!this.captionCtrl) {
+			this.captionCtrl = new ACStaticCell(this);
+			this.captionCtrl.classList.add('caption');
+		}
+		this.captionCtrl.textContent = caption;
+		return this.captionCtrl;
+	}
+	
 	setStyle(style)
 	{
 		if (ST_BORDER_TOP & style) this.style.borderTopWidth = '1px';
