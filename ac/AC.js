@@ -5,6 +5,9 @@ const ST_BORDER_RIGHT = 2;
 const ST_BORDER_BOTTOM = 4;
 const ST_BORDER_LEFT = 8;
 
+const AC_DIR_HORIZONTAL = 1;
+const AC_DIR_VERTICAL = 2;
+
 class AC
 {
 	static create(type, container, replace)

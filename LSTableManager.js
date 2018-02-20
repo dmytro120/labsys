@@ -6,6 +6,7 @@ class LSTableManager extends ACFlexGrid
 	{
 		super(parentNode);
 		this.setLayout(['auto', '50px'], ['20%', '80%']);
+		this.addSizer(0, AC_DIR_VERTICAL);
 		
 		this.itemType = 'ANALYSIS';
 		this.keyFields = ['NAME', 'VERSION'];
@@ -110,7 +111,7 @@ class LSTableManager extends ACFlexGrid
 				}
 			});
 			
-			if (!wasSameItemFound) this.cell(0,1).clear();
+			if (!wasSameItemFound && Array.from(this.cell(0,1).children).length > 1) this.cell(0,1).lastChild.remove();
 			//else console.log('TODO: Redraw item in 0,1');
 			
 			if (typeof thenFn !== 'undefined' && typeof thenFn.constructor == 'Function') thenFn();
@@ -157,7 +158,7 @@ class LSTableManager extends ACFlexGrid
 			WHERE uses_editor = 'T' \
 			ORDER BY \"name\" \
 		", rows => {
-			var dialog = new ACSelectDialog;
+			var dialog = new ACSelectDialog(document.body);
 			dialog.setTitle('Select Table');
 			
 			rows.forEach(row => {
@@ -169,7 +170,7 @@ class LSTableManager extends ACFlexGrid
 				this.itemType = evt.detail.id;
 				this.keyFields = evt.detail.keyFields.split(' ');
 				dialog.close();
-				this.cell(0,1).clear();
+				if (Array.from(this.cell(0,1).children).length > 1) this.cell(0,1).lastChild.remove();
 				this.lcScrollTop = 0;
 				this.loadData();
 			});
@@ -182,7 +183,7 @@ class LSTableManager extends ACFlexGrid
 	selectItem(evt)
 	{
 		var item = evt.detail.item;
-		this.cell(0,1).clear();
+		if (Array.from(this.cell(0,1).children).length > 1) this.cell(0,1).lastChild.remove();
 		
 		DB.query("\
 			SELECT * \
@@ -191,7 +192,7 @@ class LSTableManager extends ACFlexGrid
 			" + (this.keyFields.includes('VERSION') ? "AND version = (SELECT version FROM versions WHERE table_name = '" + this.itemType + "' AND name = x.name)" : "") + " \
 		", rows => {
 			if (rows.length < 1) {
-				this.cell(0,1).clear();
+				if (Array.from(this.cell(0,1).children).length > 1) this.cell(0,1).lastChild.remove();
 				var sc = new ACStaticCell(this.cell(0,1));
 				sc.textContent = this.itemType + ' ' + item.dataset.id + ' not found in current database';
 				sc.style.color = 'red';
@@ -207,7 +208,7 @@ class LSTableManager extends ACFlexGrid
 				WHERE fm.table_name = '" + this.itemType + "' AND fm.hidden = 'F' AND fm.field_name NOT IN ('NAME', 'CHANGED_BY', 'CHANGED_ON', 'REMOVED') \
 				ORDER BY (CASE WHEN ft.group_title IS NULL THEN 0 ELSE 1 END), ft.group_title, ft.order_number \
 			", schemaRows => {
-				this.cell(0,1).clear();
+				if (Array.from(this.cell(0,1).children).length > 1) this.cell(0,1).lastChild.remove();
 				
 				// Item Info and Details FlexGrid
 				var itemInfoAndDetailsGrid = new ACFlexGrid(this.cell(0,1));
@@ -456,7 +457,7 @@ class LSTableManager extends ACFlexGrid
 	
 	openItem()
 	{
-		var modal = new ACDialog;
+		var modal = new ACDialog(document.body);
 		modal.setTitle('Open Entry');
 		
 		var si = new ACSuggestiveInput(modal.contentCell);
@@ -497,7 +498,7 @@ class LSTableManager extends ACFlexGrid
 			 + (selFields.includes('VERSION') ? "WHERE version = (SELECT version FROM versions WHERE table_name = '" + itemInfo.type + "' AND name = x.name)" : "") + "\
 			ORDER BY 1"
 		, rows => {
-			var browser = new ACBrowseDialog;
+			var browser = new ACBrowseDialog(document.body);
 			browser.setTitle(itemInfo.type);
 			browser.setHeadings(selFields);
 			

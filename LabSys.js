@@ -4,7 +4,7 @@ class LabSys extends ACApp
 {
 	constructor()
 	{
-		super();
+		super(document.body);
 		
 		this.setName('LabSys');
 		this.setVersion('0.0.4');
@@ -147,7 +147,7 @@ class LabSys extends ACApp
 	
 	displayModeInstances()
 	{
-		var modal = new ACDialog;
+		var modal = new ACDialog(document.body);
 		modal.setTitle('Instantiated Mode Instances');
 		
 		if (Object.keys(this.modes).length > 0) {
@@ -189,7 +189,7 @@ class LabSys extends ACApp
 	
 	about()
 	{
-		var modal = new ACAboutModal;
+		var modal = new ACAboutModal(document.body);
 		modal.setTitle(this.name + ' ' + this.version);
 		modal.setImagePath('rsrc/about.jpg');
 		modal.setURL('http://dmytro.malikov.us/labsys/');

@@ -5,7 +5,8 @@ class LSScriptWindow extends ACFlexGrid
 	constructor(parentNode)
 	{
 		super(parentNode);
-		this.setLayout(['auto', '50px'], ['20%', 'sizer', 'auto']);
+		this.setLayout(['auto', '50px'], ['20%', 'auto']);
+		this.addSizer(0, AC_DIR_VERTICAL);
 		
 		// Left
 		var listContainer = new ACStaticCell(this.cell(0,0));
@@ -32,7 +33,8 @@ class LSScriptWindow extends ACFlexGrid
 		
 		// Right
 		this.itemGrid = new ACFlexGrid(this.cell(0,1));
-		this.itemGrid.setLayout(['50%', 'sizer', 'auto'], ['100%']);
+		this.itemGrid.setLayout(['50%', 'auto'], ['100%']);
+		this.itemGrid.addSizer(0, AC_DIR_HORIZONTAL);
 		
 		this.scriptCtrl = ace.edit(this.itemGrid.cell(0,0));
 		this.scriptCtrl.$blockScrolling = Infinity;
@@ -146,7 +148,7 @@ class LSScriptWindow extends ACFlexGrid
 	
 	openItem()
 	{
-		var modal = new ACDialog;
+		var modal = new ACDialog(document.body);
 		modal.setTitle('Open Entry');
 		
 		var si = new ACSuggestiveInput(modal.contentCell);

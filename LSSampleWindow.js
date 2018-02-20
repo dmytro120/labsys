@@ -18,7 +18,8 @@ class LSSampleWindow extends ACFlexGrid
 		]);
 		
 		var grid = new ACFlexGrid(this.cell(1,0));
-		grid.setLayout(['auto'], ['20%', 'sizer', 'auto']);
+		grid.setLayout(['auto'], ['20%', 'auto']);
+		grid.addSizer(0, AC_DIR_VERTICAL);
 		
 		//grid.cell(0,1).style.backgroundColor = 'red';
 		grid.cell(0,1).style.verticalAlign = 'top';
@@ -54,7 +55,7 @@ class LSSampleWindow extends ACFlexGrid
 	
 	promptForSample()
 	{
-		var modal = new ACDialog;
+		var modal = new ACDialog(document.body);
 		modal.setTitle('Open Sample');
 		modal.searchQuery = '';
 		
@@ -69,7 +70,7 @@ class LSSampleWindow extends ACFlexGrid
 				FROM sample \
 				ORDER BY 1 DESC "
 			, rows => {
-				var browser = new ACBrowseDialog;
+				var browser = new ACBrowseDialog(document.body);
 				browser.setTitle('Samples');
 				browser.setHeadings(['Sample №', 'Text ID', 'Status']);
 				

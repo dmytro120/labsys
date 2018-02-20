@@ -34,38 +34,33 @@ class ACFlexGrid extends ACControl
 			for (var c = 0, cA = 0; c < colSizes.length; c++) {
 				var cell = new ACFlexGridCell(row);
 				var cellWidth = colSizes[c];
-				if (cellWidth != 'sizer' && cellHeight != 'sizer') {
-					cell.style.width = cellWidth;
-					cell.style.height = cellHeight;
-					if (debug) {
-						cell.textContent = r.toString() + ', ' + c.toString();
-						var c1 = Math.random()*256|0;
-						var c2 = Math.random()*256|0;
-						var c3 = Math.random()*256|0;
-						cell.style.backgroundColor = 'rgb('+c1+','+c2+','+c3+')';
-					}
-					this.cells[rA][cA] = cell;
-					cA++;
-				} else if (cellHeight != 'sizer') {
-					if (r < 1) {
-						cell.style.height = cellHeight;
-						var sizer = new ACFlexGridSizer(cell, false);
-						sizer.addEventListener('resized', e => {
-							this.dispatchEvent(new CustomEvent('layoutChanged'));
-						});
-					}
-				} else if (cellWidth != 'sizer') {
-					if (c < 1) {
-						cell.style.width = cellWidth;
-						var sizer = new ACFlexGridSizer(cell, true);
-						sizer.addEventListener('resized', e => {
-							this.dispatchEvent(new CustomEvent('layoutChanged'));
-						});
-					}
+				cell.style.width = cellWidth;
+				cell.style.height = cellHeight;
+				if (debug) {
+					cell.textContent = r.toString() + ', ' + c.toString();
+					var c1 = Math.random()*256|0;
+					var c2 = Math.random()*256|0;
+					var c3 = Math.random()*256|0;
+					cell.style.backgroundColor = 'rgb('+c1+','+c2+','+c3+')';
 				}
+				this.cells[rA][cA] = cell;
+				cA++;
 			}
-			if (cellHeight != 'sizer') rA++;
+			rA++;
 		}
+	}
+	
+	addSizer(pos, type)
+	{
+		var cell = type == AC_DIR_VERTICAL ? this.cell(0, pos + 1) : this.cell(pos + 1, 0);
+		if (!cell) return;
+		
+		var sizer = new ACFlexGridSizer(null, type);
+		sizer.addEventListener('resized', e => {
+			this.dispatchEvent(new CustomEvent('layoutChanged'));
+		});
+		cell.prepend(sizer);
+		return sizer;
 	}
 	
 	cell(row, col)
@@ -100,7 +95,7 @@ class ACFlexGridCell extends ACControl
 
 class ACFlexGridSizer extends ACControl
 {
-	constructor(parentNode, flip)
+	constructor(parentNode, type)
 	{
 		super(parentNode);
 		this.setAttribute('draggable', true);
@@ -115,26 +110,23 @@ class ACFlexGridSizer extends ACControl
 			this.dispatchEvent(new CustomEvent('resized'));
 		});
 		
-		if (!flip) {
+		if (type == AC_DIR_VERTICAL) {
 			this.classList.add('lr');
-			this.parentNode.style.width = '0px';
-			if (this.parentNode && this.parentNode.previousSibling) {
-				var previousCell = this.parentNode.previousSibling;
-				this.addEventListener('drag', e => {
-					if (e.clientX) previousCell.style.width = (e.clientX - 3) + 'px';
-				});
-			}
+			this.addEventListener('drag', e => {
+				if (!this.cellToResize && this.parentNode && this.parentNode.previousSibling) {
+					this.cellToResize = this.parentNode.previousSibling;
+				}
+				if (e.clientX && this.cellToResize) this.cellToResize.style.width = (e.clientX - 3) + 'px';
+			});
 		} else {
 			this.classList.add('ud');
-			this.parentNode.style.height = this.parentNode.parentNode.style.height = '0px';
 			
-			var previousRow = this.parentNode.parentNode.previousSibling;
-			if (previousRow) {
-				var previousCell = previousRow.firstChild;
-				this.addEventListener('drag', e => {
-					if (e.clientY) previousCell.style.height = (e.clientY - 3 - 85) + 'px';
-				});
-			}
+			this.addEventListener('drag', e => {
+				if (!this.cellToResize && this.parentNode && this.parentNode.parentNode.previousSibling) {
+					this.cellToResize = this.parentNode.parentNode.previousSibling.firstChild;
+				}
+				if (e.clientY && this.cellToResize) this.cellToResize.style.height = (e.clientY - 3 - 85) + 'px';
+			});
 		}
 	}
 }

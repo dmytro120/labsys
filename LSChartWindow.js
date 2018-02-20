@@ -61,7 +61,7 @@ class LSChartWindow extends ACFlexGrid
 				WHERE status = '"+sampleStatus+"' \
 				ORDER BY 1 DESC "
 			, rows => {
-				var browser = new ACBrowseDialog;
+				var browser = new ACBrowseDialog(document.body);
 				browser.setTitle('Samples');
 				browser.setHeadings(['Sample №', 'Text ID', 'Status']);
 				
@@ -69,7 +69,7 @@ class LSChartWindow extends ACFlexGrid
 					var item = browser.addItem(row);
 					item.onclick = evt => {
 						browser.close();
-						var app = document.body.getElementsByTagName('ac-labsys')[0]; //document.body.firstChild;
+						var app = document.body.getElementsByTagName('ls-labsys')[0]; //document.body.firstChild;
 						app.initMode(LSSampleWindow, {sample: row.sample_number});
 					};
 				});
