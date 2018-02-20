@@ -190,7 +190,7 @@ ac-onoffswitch>input:checked + label:before {
     right: 0px; 
 }
 
-ls-scriptwindow .ace_scroller, ls-querywindow .ace_scroller { border-bottom: 1px solid #ddd; }
+ls-scriptwindow .ace_scroller, ls-querywindow .ace_scroller { /*border-bottom: 1px solid #ddd;*/ }
 
 /* Bootstrap Fix */
 .glyphicon { top: 0px; }

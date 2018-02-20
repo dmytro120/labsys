@@ -41,7 +41,7 @@ class LSQueryWindow extends ACFlexGrid
 		var middleCell = this.cell(1,0);
 		middleCell.style.verticalAlign = 'middle';
 		middleCell.style.backgroundColor = '#f8f8f8';
-		//middleCell.style.borderTop = '1px solid #ddd';
+		middleCell.style.borderTop = '1px solid #ddd';
 		//middleCell.style.borderBottom = '1px solid #ddd';
 		middleCell.style.textAlign = 'center';
 		

@@ -47,6 +47,7 @@ class LSScriptWindow extends ACFlexGrid
 		this.scriptCtrl.getSession().setUseSoftTabs(false);
 		this.scriptCtrl.setReadOnly(true);
 		this.scriptCtrl.renderer.$cursorLayer.element.style.display = 'none';
+		this.itemGrid.cell(0,0).style.borderBottom = '1px solid #ddd';
 		this.itemGrid.addEventListener('layoutChanged', e => {
 			this.scriptCtrl.resize(true);
 		});
