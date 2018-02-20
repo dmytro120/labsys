@@ -7,7 +7,7 @@ class ACListBox extends ACControl
 		super(parentNode);
 		
 		this.classList.add('list-group');
-		this.items = {};
+		this.rearrangeable = false;
 	}
 	
 	setStyle(style)
@@ -16,6 +16,20 @@ class ACListBox extends ACControl
 		if (ST_BORDER_RIGHT & style) this.style.borderRightWidth = '1px';
 		if (ST_BORDER_BOTTOM & style) this.style.borderBottomWidth = '1px';
 		if (ST_BORDER_LEFT & style) this.style.borderLeftWidth = '1px';
+	}
+	
+	setRearrangeable(rearrangeable)
+	{
+		this.rearrangeable = rearrangeable;
+		if (rearrangeable) {
+			this.addEventListener('dragstart', this.onItemDragStart);
+			this.addEventListener('dragover', this.onItemDragged);
+			this.addEventListener('dragend', this.onItemDragEnd);
+		}
+		
+		Array.from(this.children).forEach(item => {
+			item.setAttribute('draggable', rearrangeable);
+		});
 	}
 	
 	setItems(itemsInfo)
@@ -32,6 +46,7 @@ class ACListBox extends ACControl
 			lgi.setAttribute('type', 'button');
 			lgi.classList.add('list-group-item');
 			lgi.style.overflow = 'hidden';
+			if (this.rearrangeable) lgi.setAttribute('draggable', true);
 			
 			lgi.dataset.id = itemInfo.id;
 			if (preselectId == itemInfo.id) {
@@ -43,13 +58,11 @@ class ACListBox extends ACControl
 			lgi.textContent = itemInfo.name;
 			
 			lgi.addEventListener('click', this.onItemSelected.bind(this, lgi, false), false);
-			this.items[itemInfo.id] = lgi;
 		}
 	}
 	
 	/*clear()
 	{
-		this.items = {};
 		this.activeItem = null;
 		super.clear();
 	}*/
@@ -60,13 +73,13 @@ class ACListBox extends ACControl
 		lgi.setAttribute('type', 'button');
 		lgi.classList.add('list-group-item');
 		lgi.style.overflow = 'hidden';
+		if (this.rearrangeable) lgi.setAttribute('draggable', true);
 		
 		lgi.dataset.id = id;
 		lgi.dataset.name = name.toLowerCase();
 		lgi.textContent = name;
 		
 		lgi.addEventListener('click', this.onItemSelected.bind(this, lgi, false), false);
-		this.items[id] = lgi;
 		
 		return lgi;
 	}
@@ -86,10 +99,38 @@ class ACListBox extends ACControl
 		}));
 	}
 	
+	onItemDragStart(evt)
+	{
+		this.draggedItem = evt.target;
+		this.classList.add('indrag');
+	}
+	
+	onItemDragged(evt)
+	{
+		evt.preventDefault();
+		
+		var isDown;
+		if (this.dragScreenY) isDown = evt.screenY > this.dragScreenY;
+		this.dragScreenY = evt.screenY;
+		
+		if (this.draggedItem && this.draggedItem != evt.target && evt.target.tagName == 'BUTTON') {
+			var lb = evt.srcElement.parentElement;
+			var pushOver = isDown ? evt.target.nextSibling : evt.target;
+			lb.insertBefore(this.draggedItem, pushOver);
+			this.draggedItem.focus();
+		};
+	}
+	
+	onItemDragEnd(evt)
+	{
+		this.draggedItem = null;
+		this.classList.remove('indrag');
+		if (this.activeItem) this.activeItem.focus();
+	}
+	
 	selectItemById(id)
 	{
-		//var lgi = this.querySelector('button[data-id="'+id+'"]');
-		var lgi = this.items[id];
+		var lgi = this.querySelector('button[data-id="'+id+'"]');
 		if (lgi) this.selectItem(lgi);
 		return lgi != null;
 	}
@@ -114,7 +155,7 @@ class ACListBox extends ACControl
 	
 	getItemById(id)
 	{
-		return this.items[id];
+		return this.querySelector('button[data-id^="'+id+'"]');;
 	}
 	
 	getItemByName(name)
@@ -162,15 +203,15 @@ class ACListBox extends ACControl
 	
 	removeItemById(id)
 	{
-		if (this.items[id]) {
-			this.items[id].remove();
-			delete this.items[id];
+		var item = this.getItemById(id);
+		if (item) {
+			item.remove();
 		}
 	}
 	
 	itemCount()
 	{
-		return Object.keys(this.items).length;
+		return this.children.length;
 	}
 }
 

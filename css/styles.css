@@ -55,7 +55,7 @@ ac-notebook { display: block; height: 100%; }
 ac-notebook .btn-group { margin-left: 12px; margin-top: 12px; }
 
 /* Notebook Pager */
-.pager { margin: 12px 0; }
+/*.pager { margin: 12px 0; }*/
 .pager .btn.active.focus, .pager .btn.active:focus, .pager .btn.focus, .pager .btn:active.focus, .pager .btn:active:focus, .pager .btn:focus{border-color:rgb(221, 221, 221);background-color: rgb(248, 248, 248); outline:none;outline-offset:-2px; box-shadow: none; -webkit-box-shadow: none;}
 .pager .btn.active {border-color:rgb(221, 221, 221);background-color: rgb(248, 248, 248); box-shadow: none; -webkit-box-shadow: none;}
 .pager .btn {border-color:rgb(221, 221, 221);}
@@ -190,7 +190,7 @@ ac-onoffswitch>input:checked + label:before {
     right: 0px; 
 }
 
-.ace_scroller { border-bottom: 1px solid #ddd; }
+ls-scriptwindow .ace_scroller, ls-querywindow .ace_scroller { border-bottom: 1px solid #ddd; }
 
 /* Bootstrap Fix */
 .glyphicon { top: 0px; }
@@ -203,6 +203,7 @@ ac-listbox.list-group { display: block; margin-bottom: 0px; height: 100%; border
 .list-group-item { border-right: 0px; border-left: 0px; }
 .list-group-item:focus { outline: none; }
 .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: rgb(248, 248, 248); color: inherit; border-color: inherit; }
+ac-listbox.indrag .list-group-item:active { background-color: inherit; }
 ls-scriptwindow .list-group-item:last-child { border-bottom: 1px solid #ddd }
 
 /* ACBrowseDialog */

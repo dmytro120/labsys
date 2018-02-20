@@ -17,6 +17,7 @@ class LSScriptWindow extends ACFlexGrid
 		listContainer.onscroll = function(evt) { this.lcScrollTop = listContainer.scrollTop }.bind(this);
 
 		this.listBox = new ACListBox(listContainer);
+		this.listBox.setRearrangeable(true);
 		this.listBox.addEventListener('itemSelected', this.selectItem.bind(this));
 		
 		var ab = new ACActionBar(this.cell(1,0));
@@ -214,8 +215,6 @@ class LSScriptWindow extends ACFlexGrid
 				}
 				
 				item.clear();
-				this.listBox.items[newName] = this.listBox.items[oldName];
-				delete this.listBox.items[oldName];
 				
 				item.dataset.name = newName.toLowerCase();
 			}
@@ -273,10 +272,9 @@ class LSScriptWindow extends ACFlexGrid
 	{
 		var scripts = {};
 		
-		for (var id in this.listBox.items) {
-			var item = this.listBox.items[id];
-			scripts[id] = item.value;
-		}
+		Array.from(this.listBox.children).forEach(item => {
+			scripts[item.dataset.id] = item.value;
+		});
 		
 		localStorage.setItem('LSScriptWindowScripts', JSON.stringify(scripts));
 	}

@@ -16,6 +16,14 @@ class ACTextInput extends ACInput
 			}));
 		}
 		
+		// Fix for glitch where spacebar triggers to parent element
+		this.inputBox.addEventListener('keyup', evt => {
+			if (evt.key == ' ') {
+				evt.stopPropagation();
+				evt.preventDefault();
+			}
+		});
+		
 		this.inputBox.onblur = evt => {
 			this.dispatchEvent(new CustomEvent('blur', {
 				detail: {}

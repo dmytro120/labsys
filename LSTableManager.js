@@ -22,6 +22,7 @@ class LSTableManager extends ACFlexGrid
 		//this.listBox.style.height = this.cell(0,0).height; // added 09.12.2016
 		this.listBox.addEventListener('itemSelected', this.selectItem.bind(this));
 		
+		// Item List Actions
 		var ab = new ACActionBar(this.cell(1,0));
 		ab.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
 		ab.setItems([
@@ -35,6 +36,7 @@ class LSTableManager extends ACFlexGrid
 		
 		this.cell(0,1).style.verticalAlign = 'top';
 		
+		// Current Item Actions
 		var vb = new ACActionBar(this.cell(1,1));
 		vb.setStyle(ST_BORDER_TOP);
 		vb.setItems([
@@ -42,6 +44,14 @@ class LSTableManager extends ACFlexGrid
 			{symbol:'remove', caption:'Remove Entry', action:this.removeItem.bind(this)},
 			{symbol:'auditHistory.bmp', caption:'View History', action:null}*/
 		]);
+				
+		// Child Tables
+		this.childTableSelectorContainer = new ACStaticCell(vb);
+		this.childTableSelectorContainer.style.float = 'right';
+		this.childTableSelectorContainer.style.marginTop = '8px';
+		this.childTableSelectorContainer.style.marginRight = '8px';
+		//this.childTableSelectorContainer.style.lineHeight = '50px';
+		this.childTableSelectorContainer.classList.add('btn-group');
 		
 		// MarvinJS experimental implementation
 		var iframe = AC.create('iframe', this.cell(1,1));
@@ -104,6 +114,27 @@ class LSTableManager extends ACFlexGrid
 			//else console.log('TODO: Redraw item in 0,1');
 			
 			if (typeof thenFn !== 'undefined' && typeof thenFn.constructor == 'Function') thenFn();
+		});
+		
+		this.childTableSelectorContainer.clear();
+		DB.query("SELECT name, pretty_name FROM table_master WHERE '" + this.itemType + "' IN (name, parent_table) ORDER BY parent_table, pretty_name", subrows => {
+			//var prettyNames = subrows.map(subrow => subrow.pretty_name);
+			//this.childTableSelectorContainer.textContent = prettyNames.join(' • ');
+			var lastActiveSelector;
+			subrows.forEach(subrow => {
+				var selector = AC.create('button', this.childTableSelectorContainer);
+				selector.classList.add('btn', 'btn-default');
+				if (!lastActiveSelector) {
+					selector.classList.add('active');
+					lastActiveSelector = selector;
+				}
+				selector.textContent = subrow.pretty_name;
+				selector.addEventListener('click', e => {
+					if (lastActiveSelector) lastActiveSelector.classList.remove('active');
+					selector.classList.add('active');
+					lastActiveSelector = selector;
+				});
+			});
 		});
 	}
 	
@@ -340,11 +371,29 @@ class LSTableManager extends ACFlexGrid
 								control.addEventListener('browse', this.browseLinkedItem.bind(this, {
 									type: schemaRows[s].link_table, 
 									keyFields: schemaRows[s].key_fields, 
-									descFields:schemaRows[s].description_fields
+									descFields:schemaRows[s].description_fields.trim()
 								}));
 							}
 						break;
 					}
+				}
+				
+				// Subroutine Special Handling
+				if (this.itemType == "SUBROUTINE") {
+					ifp.clear();
+					var srcContainer = new ACStaticCell(ifp);
+					//srcContainer.style.borderTop = '1px solid #ddd';
+					srcContainer.style.height = '100%';
+					var srcCtrl = ace.edit(srcContainer);
+					srcCtrl.$blockScrolling = Infinity;
+					srcCtrl.setTheme("ace/theme/xcode");
+					srcCtrl.getSession().setMode("ace/mode/vbscript");
+					srcCtrl.renderer.setShowGutter(true);
+					srcCtrl.setShowPrintMargin(false);
+					srcCtrl.setHighlightActiveLine(false);
+					srcCtrl.setFontSize(14);
+					srcCtrl.getSession().setUseSoftTabs(false);
+					srcCtrl.setValue(rows[0].source_code, -1);
 				}
 			});
 		});

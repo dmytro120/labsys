@@ -68,16 +68,14 @@ class LabSys extends ACApp
 			this.about();
 		});
 		
-		var versionCtrl = new ACStaticCell(captionCtrl);
+		/*var versionCtrl = new ACStaticCell(captionCtrl);
 		versionCtrl.style.position = 'absolute';
 		versionCtrl.style.fontSize = '8pt';
-		/*versionCtrl.style.top = '20px';
-		versionCtrl.style.right = '8px';*/
 		versionCtrl.style.top = '63px';
 		versionCtrl.style.right = '5px';
 		versionCtrl.style.lineHeight = '8pt';
 		versionCtrl.style.fontWeight = 'bold';
-		versionCtrl.textContent = this.version;
+		versionCtrl.textContent = this.version;*/
 		
 		this.activeMode = null;
 		this.modes = {};

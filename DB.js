@@ -4,7 +4,7 @@ class DB
 	{
 		var xhr = new XMLHttpRequest();
 		xhr.addEventListener('load', this.onLoad.bind(this, xhr, okFn, failFn, thenFn, id));
-		xhr.onerror = this.onError;
+		xhr.onerror = this.onError.bind(this, thenFn, id);
 		xhr.open('GET', 'http://localhost:7000' + '/'+encodeURIComponent(query));
 		xhr.send();
 	}
@@ -32,8 +32,9 @@ class DB
 		}
 	}
 	
-	static onError()
+	static onError(thenFn, id)
 	{
 		alert('LSE1000: No connexion to LDBC.')
+		if (thenFn) thenFn.call(this, id);
 	}
 }
