@@ -13,52 +13,69 @@ class ACToolBar extends ACControl
 		this.itemsNode.classList.add('nav','navbar-nav');
 		
 		this.iconSize = '32x32';
+		this.isRadioCtrl = false;
+		this.lastA = null;
 	}
 	
-	setItems(items)
+	addItem(data)
+	{
+		var li = AC.create('li', this.itemsNode);
+		
+		var a = AC.create('a', li);
+		a.setAttribute('title', data.caption);
+		
+		if (this.iconSize == '32x32') {
+			/*a.style.paddingBottom = '4px';
+			
+			var img = AC.create('div', a);
+			img.classList.add('bebox');
+			img.style.backgroundImage = 'url(rsrc/' + this.iconSize + '/' + data.icon + ')';
+			
+			var lbl = new ACStaticCell(a);
+			lbl.textContent = data.caption;
+			lbl.style.fontSize = 'smaller';
+			lbl.style.textAlign = 'center';*/
+			
+			a.style.color = 'white';
+			a.style.textTransform = 'uppercase';
+			a.style.fontSize = 'smaller';
+			a.style.width = '64px';
+			a.style.textAlign = 'center';
+			a.style.backgroundImage = 'url(rsrc/' + this.iconSize + '/' + data.icon + ')';
+			a.style.backgroundRepeat = 'no-repeat';
+			a.style.backgroundPosition = '16px 10px'; // L T
+			a.textContent = data.caption;
+			a.style.paddingTop = '46px';
+		} else {
+			//var img = AC.create('img', a);
+			//img.src = 'rsrc/' + this.iconSize + '/' + data.icon;
+			a.style.lineHeight = '24px';
+			a.style.backgroundImage = 'url(rsrc/' + this.iconSize + '/' + data.icon + ')';
+			a.style.backgroundRepeat = 'no-repeat';
+			a.style.backgroundPosition = '6px 2px';
+			a.style.padding = '0';
+			a.style.paddingLeft = '28px';
+			a.style.paddingRight = '8px';
+			a.style.marginRight = '4px';
+			a.style.fontSize = 'smaller';
+			a.textContent = data.caption;
+			/*var lbl = new ACStaticCell(a);
+			lbl.textContent = data.caption;
+			lbl.style.float = 'left';*/
+		}
+		
+		if ('action' in data) a.action = data.action;
+		a.addEventListener('click', this._onItemSelected.bind(this));
+		
+		return li;
+	}
+	
+	setItems(itemsData)
 	{
 		this.itemsNode.clear();
-		items.forEach(function(item) {
-			var li = AC.create('li', this.itemsNode);
-			
-			var a = AC.create('a', li);
-			//a.href = 'javascript:void(0)';
-			a.setAttribute('title', item.caption);
-			
-			if (this.iconSize == '32x32') {
-				a.style.paddingBottom = '4px';
-				
-				var img = AC.create('div', a);
-				img.classList.add('bebox');
-				img.style.backgroundImage = 'url(rsrc/' + this.iconSize + '/' + item.icon + ')';
-				
-				var lbl = new ACStaticCell(a);
-				lbl.textContent = item.caption;
-				lbl.style.fontSize = 'smaller';
-				lbl.style.textAlign = 'center';
-			} else {
-				//var img = AC.create('img', a);
-				//img.src = 'rsrc/' + this.iconSize + '/' + item.icon;
-				a.style.lineHeight = '24px';
-				a.style.backgroundImage = 'url(rsrc/' + this.iconSize + '/' + item.icon + ')';
-				a.style.backgroundRepeat = 'no-repeat';
-				a.style.backgroundPosition = '6px 2px';
-				a.style.padding = '0';
-				a.style.paddingLeft = '28px';
-				a.style.paddingRight = '8px';
-				a.style.marginRight = '4px';
-				a.style.fontSize = 'smaller';
-				a.textContent = item.caption;
-				/*var lbl = new ACStaticCell(a);
-				lbl.textContent = item.caption;
-				lbl.style.float = 'left';*/
-			}
-			
-			var action = item.action;
-			if (action && action.constructor == Function) {
-				a.onclick = action;
-			}
-		}, this);
+		for (var i = 0; i < itemsData.length; i++) {
+			this.addItem(itemsData[i]);
+		}
 	}
 	
 	setCaption(caption)
@@ -82,6 +99,45 @@ class ACToolBar extends ACControl
 	setIconSize(size)
 	{
 		this.iconSize = size;
+	}
+	
+	itemCount()
+	{
+		return this.itemsNode.childElementCount;
+	}
+	
+	setRadio(isRadioCtrl)
+	{
+		this.isRadioCtrl = isRadioCtrl;
+	}
+	
+	setActiveItem(li)
+	{
+		if (!li && this.lastA) {
+			this.lastA.parentElement.classList.remove('active');
+			this.lastA = null;
+			return;
+		}
+		var a = li.firstChild;
+		if (a == this.lastA) return;
+		if (this.lastA) this.lastA.parentElement.classList.remove('active');
+		this.lastA = a;
+		a.parentElement.classList.add('active');
+		this.lastA = a;
+	}
+	
+	_onItemSelected(evt)
+	{
+		var a = evt.target.tagName == 'A' ? evt.target : evt.target.parentElement;
+		if (!this.isRadioCtrl) {
+			if (a.action) a.action();
+		} else {
+			if (a == this.lastA) return;
+			if (this.lastA) this.lastA.parentElement.classList.remove('active');
+			a.parentElement.classList.add('active');
+			this.lastA = a;
+			if (a.action) a.action();
+		}
 	}
 }
 

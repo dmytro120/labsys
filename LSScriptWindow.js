@@ -5,7 +5,7 @@ class LSScriptWindow extends ACFlexGrid
 	constructor(parentNode)
 	{
 		super(parentNode);
-		this.setLayout(['auto', '50px'], ['20%', 'auto']);
+		this.setLayout(['auto', '40px'], ['20%', 'auto']);
 		this.addSizer(0, AC_DIR_VERTICAL);
 		
 		// Left
@@ -233,7 +233,7 @@ class LSScriptWindow extends ACFlexGrid
 	{
 		var selectedItem = this.listBox.getSelectedItem();
 		if (selectedItem && confirm('Script ' + selectedItem.dataset.id + ' will be removed.')) {
-			this.listBox.removeItemById(selectedItem.dataset.id);
+			selectedItem.remove();
 			this.scriptCtrl.session.setValue('', -1);
 			this.scriptCtrl.setReadOnly(true);
 			this.scriptCtrl.renderer.$cursorLayer.element.style.display = 'none';

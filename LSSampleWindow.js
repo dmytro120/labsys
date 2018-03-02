@@ -37,11 +37,12 @@ class LSSampleWindow extends ACFlexGrid
 	{
 		if (params && params.sample) {
 			this.openSample(params.sample, e => {
-				this.tv.firstChild.firstChild.select();
+				this.tv.firstChild.lastChild.select();
 				this.setObject('sample', params.sample);
 			});
 		} else if (!this.tv.firstChild.firstChild) {
-			this.promptForSample();
+			// this is how it works in LW but it was frustrating the hell out of me when switching back and forth between modes
+			//this.promptForSample();
 		}
 	}
 	

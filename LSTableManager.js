@@ -5,7 +5,7 @@ class LSTableManager extends ACFlexGrid
 	constructor(parentNode)
 	{
 		super(parentNode);
-		this.setLayout(['auto', '50px'], ['20%', '80%']);
+		this.setLayout(['auto', '40px'], ['20%', '80%']);
 		this.addSizer(0, AC_DIR_VERTICAL);
 		
 		this.itemType = 'ANALYSIS';
@@ -38,21 +38,14 @@ class LSTableManager extends ACFlexGrid
 		this.cell(0,1).style.verticalAlign = 'top';
 		
 		// Current Item Actions
-		var vb = new ACActionBar(this.cell(1,1));
-		vb.setStyle(ST_BORDER_TOP);
-		vb.setItems([
-			/*{symbol:'save', caption:'Save Entry', action:this.saveItem.bind(this)},
+		this.vb = new ACActionBar(this.cell(1,1));
+		this.vb.setStyle(ST_BORDER_TOP);
+		this.vb.setRadio(true);
+		/*this.vb.setItems([
+			{symbol:'save', caption:'Save Entry', action:this.saveItem.bind(this)},
 			{symbol:'remove', caption:'Remove Entry', action:this.removeItem.bind(this)},
-			{symbol:'auditHistory.bmp', caption:'View History', action:null}*/
-		]);
-				
-		// Child Tables
-		this.childTableSelectorContainer = new ACStaticCell(vb);
-		this.childTableSelectorContainer.style.float = 'right';
-		this.childTableSelectorContainer.style.marginTop = '8px';
-		this.childTableSelectorContainer.style.marginRight = '8px';
-		//this.childTableSelectorContainer.style.lineHeight = '50px';
-		this.childTableSelectorContainer.classList.add('btn-group');
+			{symbol:'auditHistory.bmp', caption:'View History', action:null}
+		]);*/
 		
 		// MarvinJS experimental implementation
 		var iframe = AC.create('iframe', this.cell(1,1));
@@ -60,32 +53,36 @@ class LSTableManager extends ACFlexGrid
 		iframe.style.width = iframe.style.height = '1px';
 		iframe.src = 'pkg/marvin/marvinpack.html';
 		iframe.addEventListener('load', evt => {
-			var marvin = iframe.contentWindow.marvin;
-			marvin.onLoad = evt => {
-				var params = {
-					'imageType': 'image/png',
-					'settings': {
-						'carbonLabelVisible' : false,
-						'cpkColoring' : true,
-						'chiralFlagVisible': true,
-						'lonePairsVisible' : false,
-						'lonepaircalculationenabled' : false,
-						'atomIndicesVisible': false,
-						'implicitHydrogen' : 'TERMINAL_AND_HETERO',
-						'displayMode' : 'WIREFRAME',
-						'background-color': '#ffffff',
-						'zoomMode' : 'fit',
-						'width' : 200//,
-						//'height' : 200
-					},
-					'inputFormat': 'mol', //'smiles',
-					'services': {
-						//molconvertws: 'http://marvinjs-demo.chemaxon.com/webservices2/rest-v0/util/calculate/molExport',
-						//stereoinfows: 'http://marvinjs-demo.chemaxon.com/webservices2/rest-v0/util/calculate/cipStereoInfo'
+			try {
+				var marvin = iframe.contentWindow.marvin;
+				marvin.onLoad = evt => {
+					var params = {
+						'imageType': 'image/png',
+						'settings': {
+							'carbonLabelVisible' : false,
+							'cpkColoring' : true,
+							'chiralFlagVisible': true,
+							'lonePairsVisible' : false,
+							'lonepaircalculationenabled' : false,
+							'atomIndicesVisible': false,
+							'implicitHydrogen' : 'TERMINAL_AND_HETERO',
+							'displayMode' : 'WIREFRAME',
+							'background-color': '#ffffff',
+							'zoomMode' : 'fit',
+							'width' : 200//,
+							//'height' : 200
+						},
+						'inputFormat': 'mol', //'smiles',
+						'services': {
+							//molconvertws: 'http://marvinjs-demo.chemaxon.com/webservices2/rest-v0/util/calculate/molExport',
+							//stereoinfows: 'http://marvinjs-demo.chemaxon.com/webservices2/rest-v0/util/calculate/cipStereoInfo'
+						}
 					}
-				}
-				this.marvinExporter = new marvin.ImageExporter(params);
-			};
+					this.marvinExporter = new marvin.ImageExporter(params);
+				};
+			} catch(error) {
+				//console.warn('Marvin not initialised');
+			}
 		});
 	}
 	
@@ -117,24 +114,16 @@ class LSTableManager extends ACFlexGrid
 			if (typeof thenFn !== 'undefined' && typeof thenFn.constructor == 'Function') thenFn();
 		});
 		
-		this.childTableSelectorContainer.clear();
-		DB.query("SELECT name, pretty_name FROM table_master WHERE '" + this.itemType + "' IN (name, parent_table) ORDER BY parent_table, pretty_name", subrows => {
-			//var prettyNames = subrows.map(subrow => subrow.pretty_name);
-			//this.childTableSelectorContainer.textContent = prettyNames.join(' • ');
-			var lastActiveSelector;
+		this.vb.clearItems();
+		DB.query("\
+			SELECT name, pretty_name \
+			FROM table_master \
+			WHERE '" + this.itemType + "' IN (name, parent_table) \
+			ORDER BY (CASE WHEN parent_table IS NULL THEN 0 ELSE 1 END), pretty_name", 
+		subrows => {
 			subrows.forEach(subrow => {
-				var selector = AC.create('button', this.childTableSelectorContainer);
-				selector.classList.add('btn', 'btn-default');
-				if (!lastActiveSelector) {
-					selector.classList.add('active');
-					lastActiveSelector = selector;
-				}
-				selector.textContent = subrow.pretty_name;
-				selector.addEventListener('click', e => {
-					if (lastActiveSelector) lastActiveSelector.classList.remove('active');
-					selector.classList.add('active');
-					lastActiveSelector = selector;
-				});
+				var item = this.vb.addItem({caption: subrow.pretty_name});
+				if (this.vb.itemCount() == 1) this.vb.setActiveItem(item);
 			});
 		});
 	}
@@ -342,7 +331,7 @@ class LSTableManager extends ACFlexGrid
 						case 'Integer':
 						default:
 							// Marvin Experimental Implementation START
-							if (schemaRows[s].field_name == 'STRUCTURE') {
+							if (schemaRows[s].field_name == 'STRUCTURE' && this.marvinExporter) {
 								var control = new ACStaticCell(field);
 								control.name = schemaRows[s].field_name;
 								control.value = value;
@@ -448,7 +437,9 @@ class LSTableManager extends ACFlexGrid
 	createItem()
 	{
 		/*DB.query("INSERT INTO "+this.itemType+" VALUES()", result => {
-			this.loadData(this.listBox.selectItemById.bind(this.listBox, result.insertId));
+			this.loadData(e => {
+				this.listBox.selectItem(this.listBox.getItemById(result.insertId));
+			});
 		}, error => {
 			alert(error);
 		});*/

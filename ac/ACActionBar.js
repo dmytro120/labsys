@@ -12,19 +12,58 @@ class ACActionBar extends ACControl
 		this.itemsNode = AC.create('ul', this);
 		this.itemsNode.classList.add('nav','navbar-nav');
 		this.itemsNode.style.overflow = 'auto';
+		
+		this.isRadioCtrl = false;
+		this.lastA = null;
 	}
 	
-	setItems(items)
+	clearItems()
 	{
 		this.itemsNode.clear();
-		for (var i = 0; i < items.length; i++) {
-			var li = AC.create('li', this.itemsNode);
-			var a = AC.create('a', li);
-			//a.href = 'javascript:void(0)';
-			if ('symbol' in items[i]) a.classList.add('glyphicon', 'glyphicon-'+items[i].symbol);
-			if ('caption' in items[i]) a.setAttribute('title', items[i].caption);
-			if ('action' in items[i]) a.onclick = items[i].action;
+	}
+	
+	addItem(data)
+	{
+		var li = AC.create('li', this.itemsNode);
+		var a = AC.create('a', li);
+		if ('symbol' in data) a.classList.add('glyphicon', 'glyphicon-'+data.symbol);
+		if ('caption' in data) a.setAttribute('title', data.caption);
+		if ('caption' in data && !('symbol' in data)) a.textContent = data.caption;
+		if ('action' in data) a.action = data.action;
+		a.addEventListener('click', this._onItemSelected.bind(this));
+		return li;
+	}
+	
+	setItems(itemsData)
+	{
+		this.clearItems();
+		for (var i = 0; i < itemsData.length; i++) {
+			this.addItem(itemsData[i]);
 		}
+	}
+	
+	itemCount()
+	{
+		return this.itemsNode.childElementCount;
+	}
+	
+	setRadio(isRadioCtrl)
+	{
+		this.isRadioCtrl = isRadioCtrl;
+	}
+	
+	setActiveItem(li)
+	{
+		if (!li && this.lastA) {
+			this.lastA.parentElement.classList.remove('active');
+			this.lastA = null;
+		}
+		var a = li.firstChild;
+		if (a == this.lastA) return;
+		if (this.lastA) this.lastA.parentElement.classList.remove('active');
+		this.lastA = a;
+		a.parentElement.classList.add('active');
+		this.lastA = a;
 	}
 	
 	setStyle(style)
@@ -33,6 +72,20 @@ class ACActionBar extends ACControl
 		if (ST_BORDER_RIGHT & style) this.style.borderRightWidth = '1px';
 		if (ST_BORDER_BOTTOM & style) this.style.borderBottomWidth = '1px';
 		if (ST_BORDER_LEFT & style) this.style.borderLeftWidth = '1px';
+	}
+	
+	_onItemSelected(evt)
+	{
+		var a = evt.target;
+		if (!this.isRadioCtrl) {
+			if (a.action) a.action();
+		} else {
+			if (a == this.lastA) return;
+			if (this.lastA) this.lastA.parentElement.classList.remove('active');
+			a.parentElement.classList.add('active');
+			this.lastA = a;
+			if (a.action) a.action();
+		}
 	}
 }
 

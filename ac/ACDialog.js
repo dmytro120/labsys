@@ -24,12 +24,6 @@ class ACDialog extends ACModal
 		
 		this.footerCell = new ACStaticCell(this.contentArea);
 		this.footerCell.classList.add('modal-footer');
-		
-		var cb2 = AC.create('button', this.footerCell);
-		cb2.setAttribute('type', 'button');
-		cb2.classList.add('btn', 'btn-default');
-		cb2.dataset.dismiss = 'modal';
-		cb2.textContent = 'Close';
 	}
 	
 	setTitle(title)

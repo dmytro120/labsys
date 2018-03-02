@@ -8,6 +8,12 @@ class ACListBox extends ACControl
 		
 		this.classList.add('list-group');
 		this.rearrangeable = false;
+		
+		this.eventNamesAndHandlers = {
+			'dragstart': this._onItemDragStart,
+			'dragover': this._onItemDragged,
+			'dragend': this._onItemDragEnd
+		};
 	}
 	
 	setStyle(style)
@@ -21,44 +27,15 @@ class ACListBox extends ACControl
 	setRearrangeable(rearrangeable)
 	{
 		this.rearrangeable = rearrangeable;
-		if (rearrangeable) {
-			this.addEventListener('dragstart', this.onItemDragStart);
-			this.addEventListener('dragover', this.onItemDragged);
-			this.addEventListener('dragend', this.onItemDragEnd);
+		
+		for (var eventName in this.eventNamesAndHandlers) {
+			if (rearrangeable) this.addEventListener(eventName, this.eventNamesAndHandlers[eventName]);
+			else this.removeEventListener(eventName, this.eventNamesAndHandlers[eventName]);
 		}
 		
 		Array.from(this.children).forEach(item => {
 			item.setAttribute('draggable', rearrangeable);
 		});
-	}
-	
-	setItems(itemsInfo)
-	{
-		if (this.activeItem && 'id' in this.activeItem.dataset) var preselectId = this.activeItem.dataset.id;
-		this.clear();
-		for (var i = 0; i < itemsInfo.length; i++) {
-			var itemInfo = itemsInfo[i];
-			if (!('id' in itemInfo && 'name' in itemInfo)) {
-				console.log('ListBox setItems: could not add item because passed info is missing `id` and/or `name`.');
-				continue;
-			}
-			var lgi = AC.create('button', this);
-			lgi.setAttribute('type', 'button');
-			lgi.classList.add('list-group-item');
-			lgi.style.overflow = 'hidden';
-			if (this.rearrangeable) lgi.setAttribute('draggable', true);
-			
-			lgi.dataset.id = itemInfo.id;
-			if (preselectId == itemInfo.id) {
-				lgi.classList.add('active');
-				this.activeItem = lgi;
-			}
-			
-			lgi.dataset.name = itemInfo.name.toLowerCase();
-			lgi.textContent = itemInfo.name;
-			
-			lgi.addEventListener('click', this.onItemSelected.bind(this, lgi, false), false);
-		}
 	}
 	
 	/*clear()
@@ -79,73 +56,15 @@ class ACListBox extends ACControl
 		lgi.dataset.name = name.toLowerCase();
 		lgi.textContent = name;
 		
-		lgi.addEventListener('click', this.onItemSelected.bind(this, lgi, false), false);
+		lgi.addEventListener('click', this._onItemSelected.bind(this, lgi, false), false);
 		
 		return lgi;
-	}
-	
-	onItemSelected(lgi, internalOrigin)
-	{
-		var lastItem = this.activeItem;
-		if (this.activeItem) this.activeItem.classList.remove('active');
-		lgi.classList.add('active');
-		this.activeItem = lgi;
-		this.dispatchEvent(new CustomEvent('itemSelected', {
-			detail: {
-				item: lgi,
-				lastItem: lastItem,
-				internalOrigin: internalOrigin
-			}
-		}));
-	}
-	
-	onItemDragStart(evt)
-	{
-		this.draggedItem = evt.target;
-		this.classList.add('indrag');
-	}
-	
-	onItemDragged(evt)
-	{
-		evt.preventDefault();
-		
-		var isDown;
-		if (this.dragScreenY) isDown = evt.screenY > this.dragScreenY;
-		this.dragScreenY = evt.screenY;
-		
-		if (this.draggedItem && this.draggedItem != evt.target && evt.target.tagName == 'BUTTON') {
-			var lb = evt.srcElement.parentElement;
-			var pushOver = isDown ? evt.target.nextSibling : evt.target;
-			lb.insertBefore(this.draggedItem, pushOver);
-			this.draggedItem.focus();
-		};
-	}
-	
-	onItemDragEnd(evt)
-	{
-		this.draggedItem = null;
-		this.classList.remove('indrag');
-		if (this.activeItem) this.activeItem.focus();
-	}
-	
-	selectItemById(id)
-	{
-		var lgi = this.querySelector('button[data-id="'+id+'"]');
-		if (lgi) this.selectItem(lgi);
-		return lgi != null;
-	}
-	
-	selectItemByName(name)
-	{
-		var lgi = this.querySelector('button[data-name^="'+name.toLowerCase()+'"]');
-		if (lgi) this.selectItem(lgi);
-		return lgi != null;
 	}
 	
 	selectItem(item)
 	{
 		if (item) {
-			this.onItemSelected.call(this, item, true);
+			this._onItemSelected.call(this, item, true);
 			item.scrollIntoViewIfNeeded();
 		} else {
 			this.activeItem.classList.remove('active');
@@ -201,17 +120,53 @@ class ACListBox extends ACControl
 		return false;
 	}
 	
-	removeItemById(id)
-	{
-		var item = this.getItemById(id);
-		if (item) {
-			item.remove();
-		}
-	}
-	
 	itemCount()
 	{
 		return this.children.length;
+	}
+	
+	_onItemSelected(lgi, internalOrigin)
+	{
+		var lastItem = this.activeItem;
+		if (this.activeItem) this.activeItem.classList.remove('active');
+		lgi.classList.add('active');
+		this.activeItem = lgi;
+		this.dispatchEvent(new CustomEvent('itemSelected', {
+			detail: {
+				item: lgi,
+				lastItem: lastItem,
+				internalOrigin: internalOrigin
+			}
+		}));
+	}
+	
+	_onItemDragStart(evt)
+	{
+		this.draggedItem = evt.target;
+		this.classList.add('indrag');
+	}
+	
+	_onItemDragged(evt)
+	{
+		evt.preventDefault();
+		
+		var isDown;
+		if (this.dragScreenY) isDown = evt.screenY > this.dragScreenY;
+		this.dragScreenY = evt.screenY;
+		
+		if (this.draggedItem && this.draggedItem != evt.target && evt.target.tagName == 'BUTTON') {
+			var lb = evt.srcElement.parentElement;
+			var pushOver = isDown ? evt.target.nextSibling : evt.target;
+			lb.insertBefore(this.draggedItem, pushOver);
+			this.draggedItem.focus();
+		};
+	}
+	
+	_onItemDragEnd(evt)
+	{
+		this.draggedItem = null;
+		this.classList.remove('indrag');
+		if (this.activeItem) this.activeItem.focus();
 	}
 }
 

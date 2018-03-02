@@ -8,7 +8,7 @@ class LabSys extends ACApp
 		
 		this.setName('LabSys');
 		this.setVersion('0.0.4');
-		this.setLayout(['82px', 'auto'], ['100%']);
+		this.setLayout(['70px', 'auto'], ['100%']);
 		
 		this.mainCell = this.cell(1,0);
 		this.mainCell.style.verticalAlign = 'middle';
@@ -48,21 +48,20 @@ class LabSys extends ACApp
 			//},
 		});*/
 		
-		var tb = new ACToolBar(this.cell(0,0));
-		tb.setStyle(ST_BORDER_BOTTOM);
-		tb.setItems([
-			{caption: 'Clear', icon: 'sweep.png', action: this.setMode.bind(this, null) },
-			{caption: 'Modes', icon: 'switch.png', action: this.displayModeInstances.bind(this) },
-			{caption: 'Tables', icon: 'table-edit.png', action: this.initMode.bind(this, LSTableManager) },
-			{caption: 'Samples', icon: 'beaker.png', action: this.initMode.bind(this, LSSampleWindow) },
-			{caption: 'Query', icon: 'db.png', action: this.initMode.bind(this, LSQueryWindow) },
-			{caption: 'Scripts', icon: 'script2.png', action: this.initMode.bind(this, LSScriptWindow) },
-			{caption: 'Charts', icon: 'chart.png', action: this.initMode.bind(this, LSChartWindow) },
-			{caption: 'Map', icon: 'globe.png', action: this.initMode.bind(this, ACMapView) }/*,
-			{caption: 'Info', icon: 'info.png', action: this.about.bind(this) }*/
+		this.tb = new ACToolBar(this.cell(0,0));
+		this.tb.setStyle(ST_BORDER_BOTTOM);
+		this.tb.setRadio(true);
+		this.tb.setItems([
+			{caption: 'Modes', icon: 'modes-w.png', action: this.displayModeInstances.bind(this) },
+			{caption: 'Tables', icon: 'tables-w.png', action: this.initMode.bind(this, LSTableManager) },
+			{caption: 'Samples', icon: 'samples-w2.png', action: this.initMode.bind(this, LSSampleWindow) },
+			{caption: 'Query', icon: 'query-w.png', action: this.initMode.bind(this, LSQueryWindow) },
+			{caption: 'Scripts', icon: 'scripts-w.png', action: this.initMode.bind(this, LSScriptWindow) },
+			{caption: 'Charts', icon: 'charts-w.png', action: this.initMode.bind(this, LSChartWindow) },
+			{caption: 'Map', icon: 'map-w.png', action: this.initMode.bind(this, ACMapView) }
 		]);
 		
-		var captionCtrl = tb.setCaption(this.name.toLowerCase());
+		var captionCtrl = this.tb.setCaption(this.name.toLowerCase());
 		captionCtrl.style.fontFamily = 'FuturaO';
 		captionCtrl.addEventListener('click', e => {
 			this.about();
@@ -126,6 +125,7 @@ class LabSys extends ACApp
 			this.activeMode = null;
 			this.mainCell.clear();
 			this.drawAtom();
+			this.tb.setActiveItem();
 			return;
 		}
 		
@@ -161,22 +161,26 @@ class LabSys extends ACApp
 					modal.close();
 				};
 			}
-			modal.addButton('Go To', evt => {
-				var si = lb.getSelectedItem();
-				if (si) {
-					this.setMode(si.targetMode);
-					modal.close();
-				}
+			modal.addButton('None', evt => {
+				this.setMode(null);
+				modal.close();
 			});
 			modal.addButton('Release', evt => {
 				var si = lb.getSelectedItem();
 				if (si) {
 					this.deleteModeByClassName(si.dataset.id);
-					lb.removeItemById(si.dataset.id);
+					si.remove();
 					if (lb.itemCount() < 1) {
 						modal.contentCell.remove();
 						modal.footerCell.style.borderTopWidth = '0';
 					}
+				}
+			});
+			modal.addButton('Go To', evt => {
+				var si = lb.getSelectedItem();
+				if (si) {
+					this.setMode(si.targetMode);
+					modal.close();
 				}
 			});
 		} else {
