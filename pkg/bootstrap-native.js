@@ -726,7 +726,7 @@
       if (e.which == 27) {self.close();}
     };
     this.close = function() {
-      self.menu.parentNode.className = self.menu.parentNode.className.replace(/\bopen/,'');
+      self.menu.parentNode.className = self.menu.parentNode.className.replace(/\b\s?open/,'');
       self.menu.setAttribute('aria-expanded',false);
     };
     this.menu.setAttribute('tabindex', '0'); // Fix onblur on Chrome | Safari

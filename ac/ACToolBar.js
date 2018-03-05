@@ -43,9 +43,9 @@ class ACToolBar extends ACControl
 			a.style.textAlign = 'center';
 			a.style.backgroundImage = 'url(rsrc/' + this.iconSize + '/' + data.icon + ')';
 			a.style.backgroundRepeat = 'no-repeat';
-			a.style.backgroundPosition = '16px 10px'; // L T
+			a.style.backgroundPosition = '16px 12px'; // L T
 			a.textContent = data.caption;
-			a.style.paddingTop = '46px';
+			a.style.paddingTop = '48px';
 		} else {
 			//var img = AC.create('img', a);
 			//img.src = 'rsrc/' + this.iconSize + '/' + data.icon;

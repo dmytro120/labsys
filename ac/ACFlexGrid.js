@@ -98,11 +98,22 @@ class ACFlexGridSizer extends ACControl
 	constructor(parentNode, type)
 	{
 		super(parentNode);
+		this.type = type;
+		this.classList.add(type == AC_DIR_VERTICAL ? 'lr' : 'ud');
 		this.setAttribute('draggable', true);
 		this.blankImage = document.createElement('img');
+		
 		this.addEventListener('drop', e => {});
+		this.addEventListener('dragover', evt => {evt.preventDefault();});
 		
 		this.addEventListener('dragstart', e => {
+			if (type == AC_DIR_VERTICAL) {
+				this.cellToResize = this.parentNode.previousSibling;
+				this.smallOffset = this.cellToResize.getBoundingClientRect().width + this.getOffset() - e.x;
+			} else {
+				this.cellToResize = this.parentNode.parentNode.previousSibling.firstChild;
+				this.smallOffset = this.cellToResize.getBoundingClientRect().height + this.getOffset() - e.y;
+			}
 			e.dataTransfer.setDragImage(this.blankImage, 0, 0);
 		});
 		
@@ -110,24 +121,20 @@ class ACFlexGridSizer extends ACControl
 			this.dispatchEvent(new CustomEvent('resized'));
 		});
 		
-		if (type == AC_DIR_VERTICAL) {
-			this.classList.add('lr');
-			this.addEventListener('drag', e => {
-				if (!this.cellToResize && this.parentNode && this.parentNode.previousSibling) {
-					this.cellToResize = this.parentNode.previousSibling;
-				}
-				if (e.clientX && this.cellToResize) this.cellToResize.style.width = (e.clientX - 3) + 'px';
-			});
-		} else {
-			this.classList.add('ud');
-			
-			this.addEventListener('drag', e => {
-				if (!this.cellToResize && this.parentNode && this.parentNode.parentNode.previousSibling) {
-					this.cellToResize = this.parentNode.parentNode.previousSibling.firstChild;
-				}
-				if (e.clientY && this.cellToResize) this.cellToResize.style.height = (e.clientY - 3 - 85) + 'px';
-			});
-		}
+		this.addEventListener('drag', this.resize.bind(this));
+	}
+	
+	getOffset()
+	{
+		var gridRect = this.parentElement.parentElement.parentElement.getBoundingClientRect();
+		return this.type == AC_DIR_VERTICAL ? gridRect.x : gridRect.y;
+	}
+	
+	resize(e)
+	{
+		if (!this.cellToResize || !e.clientX || !e.clientY) return;
+		if (this.type == AC_DIR_VERTICAL) this.cellToResize.style.width = (e.clientX + this.smallOffset - this.getOffset()) + 'px';
+		else this.cellToResize.style.height = (e.clientY + this.smallOffset - this.getOffset()) + 'px';
 	}
 }
 
