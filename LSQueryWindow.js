@@ -65,7 +65,7 @@ class LSQueryWindow extends ACFlexGrid
 		
 		this.xlsxButton = AC.create('button', sizer);
 		this.xlsxButton.classList.add('btn', 'btn-default', 'btn-sm');
-		this.xlsxButton.textContent = 'Run All to XLSX';
+		this.xlsxButton.textContent = this.xlsxButton.dataset.caption = 'Run All to XLSX';
 		this.xlsxButton.onclick = this.prepareXLSX.bind(this);
 		
 		var spacer = new ACStaticCell(sizer);
@@ -240,7 +240,7 @@ class LSQueryWindow extends ACFlexGrid
 				this.xlsxButton.textContent = counter+'/'+queryCount;
 				if (counter == queryCount) {
 					this.runButton.disabled = this.xlsxButton.disabled = this.copyButton.disabled = false;
-					this.xlsxButton.textContent = 'XLSX';
+					this.xlsxButton.textContent = this.xlsxButton.dataset.caption;
 					if (errorCount > 0) alert(errorCount + ' ' + (errorCount > 1 ? 'errors' : 'error') + ' encountered. See export file for more info.');
 					this.generateXLSX(datasets, colInfo);
 				}
