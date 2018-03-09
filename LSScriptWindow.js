@@ -68,6 +68,7 @@ class LSScriptWindow extends ACFlexGrid
 	onAttached()
 	{
 		this.readScripts();
+		if (this.contentContainerScrollTop) this.contentContainer.scrollTop = this.contentContainerScrollTop;
 	}
 	
 	readScripts()
@@ -269,6 +270,7 @@ class LSScriptWindow extends ACFlexGrid
 	onDetached()
 	{
 		this.saveItem();
+		this.contentContainerScrollTop = this.contentContainer.scrollTop;
 	}
 	
 	writeScripts()

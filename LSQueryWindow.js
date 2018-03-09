@@ -5,7 +5,12 @@ class LSQueryWindow extends ACFlexGrid
 	constructor(parentNode)
 	{
 		super(parentNode);
-		this.setLayout(['auto', '50px', 'auto'], ['100%']);
+		this.setLayout(['auto', '39px', 'auto'], ['100%']);
+		
+		var sizer = this.addSizer(0, AC_DIR_HORIZONTAL);
+		sizer.style.height = '100%';
+		sizer.style.marginTop = '0';
+		sizer.style.paddingTop = '4px';
 		
 		var topCell = this.cell(0,0);
 		this.queryCtrl = ace.edit(topCell);
@@ -32,6 +37,9 @@ class LSQueryWindow extends ACFlexGrid
 			this.queryCtrl.commands.exec("paste",this.queryCtrl,n);
 		}
 		//this.queryCtrl.style.borderBottom = '1px solid #ddd';
+		this.addEventListener('layoutChanged', e => {
+			this.queryCtrl.resize(true);
+		});
 		var preText = localStorage.getItem("LSQueryWindowText");
 		if (preText) this.queryCtrl.setValue(preText, -1);
 		this.queryCtrl.on("input", evt => {
@@ -45,20 +53,30 @@ class LSQueryWindow extends ACFlexGrid
 		//middleCell.style.borderBottom = '1px solid #ddd';
 		middleCell.style.textAlign = 'center';
 		
-		this.runButton = AC.create('button', this.cell(1,0));
-		this.runButton.classList.add('btn', 'btn-default');
-		this.runButton.textContent = 'Run';
+		this.runButton = AC.create('button', sizer);
+		this.runButton.classList.add('btn', 'btn-default', 'btn-sm');
+		this.runButton.textContent = 'Run Current';
 		this.runButton.onclick = this.runQuery.bind(this);
 		
-		var spacer = new ACStaticCell(this.cell(1,0));
+		var spacer = new ACStaticCell(sizer);
 		spacer.style.display = 'inline-block';
 		spacer.style.width = '12px';
 		spacer.textContent = '  ';
 		
-		this.xlsxButton = AC.create('button', this.cell(1,0));
-		this.xlsxButton.classList.add('btn', 'btn-default');
-		this.xlsxButton.textContent = 'XLSX';
+		this.xlsxButton = AC.create('button', sizer);
+		this.xlsxButton.classList.add('btn', 'btn-default', 'btn-sm');
+		this.xlsxButton.textContent = 'Run All to XLSX';
 		this.xlsxButton.onclick = this.prepareXLSX.bind(this);
+		
+		var spacer = new ACStaticCell(sizer);
+		spacer.style.display = 'inline-block';
+		spacer.style.width = '12px';
+		spacer.textContent = '  ';
+		
+		this.copyButton = AC.create('button', sizer);
+		this.copyButton.classList.add('btn', 'btn-default', 'btn-sm');
+		this.copyButton.textContent = 'Copy Table';
+		this.copyButton.onclick = this.copyResults.bind(this);
 		
 		this.resultContainer = AC.create('div', this.cell(2,0));
 		this.resultContainer.style.width = '100%';
@@ -70,7 +88,13 @@ class LSQueryWindow extends ACFlexGrid
 	
 	onAttached()
 	{
+		if (this.resultContainerScrollTop) this.resultContainer.scrollTop = this.resultContainerScrollTop;
 		this.queryCtrl.focus();
+	}
+	
+	onDetached()
+	{
+		this.resultContainerScrollTop = this.resultContainer.scrollTop;
 	}
 	
 	onAppCommand(command)
@@ -98,7 +122,7 @@ class LSQueryWindow extends ACFlexGrid
 			return;
 		}
 		
-		this.runButton.disabled = this.xlsxButton.disabled = true;
+		this.runButton.disabled = this.xlsxButton.disabled = this.copyButton.disabled = true;
 		
 		// fix control jump issue
 		var cr = this.cell(0,0).getBoundingClientRect();
@@ -136,6 +160,7 @@ class LSQueryWindow extends ACFlexGrid
 							headerRow.appendChild(th);
 						}
 						var value = row[key];
+						if (value == null) value = "";
 						var td = document.createElement('td');
 						var valueText = document.createTextNode(value);
 						td.appendChild(valueText);
@@ -154,6 +179,7 @@ class LSQueryWindow extends ACFlexGrid
 					th.appendChild(keyText);
 					headerRow.appendChild(th);
 					var value = result[key];
+					if (value == null) value = "";
 					var td = document.createElement('td');
 					var valueText = document.createTextNode(value);
 					td.appendChild(valueText);
@@ -162,7 +188,7 @@ class LSQueryWindow extends ACFlexGrid
 			}
 			this.setResult(table);
 		}, null, evt => {
-			this.runButton.disabled = this.xlsxButton.disabled = false;
+			this.runButton.disabled = this.xlsxButton.disabled = this.copyButton.disabled = false;
 		});
 	}
 	
@@ -181,7 +207,7 @@ class LSQueryWindow extends ACFlexGrid
 		var queryCount = queries.length;
 		if (queryCount < 1) return;
 		
-		this.runButton.disabled = this.xlsxButton.disabled = true;
+		this.runButton.disabled = this.xlsxButton.disabled = this.copyButton.disabled = true;
 		this.xlsxButton.textContent = '0/'+queryCount;
 		var datasets = [];
 		var colInfo = [];
@@ -213,7 +239,7 @@ class LSQueryWindow extends ACFlexGrid
 				counter++;
 				this.xlsxButton.textContent = counter+'/'+queryCount;
 				if (counter == queryCount) {
-					this.runButton.disabled = this.xlsxButton.disabled = false;
+					this.runButton.disabled = this.xlsxButton.disabled = this.copyButton.disabled = false;
 					this.xlsxButton.textContent = 'XLSX';
 					if (errorCount > 0) alert(errorCount + ' ' + (errorCount > 1 ? 'errors' : 'error') + ' encountered. See export file for more info.');
 					this.generateXLSX(datasets, colInfo);
@@ -258,6 +284,22 @@ class LSQueryWindow extends ACFlexGrid
 		var wbout = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
 		var outputFileName = Math.floor(Date.now() / 1000).toString();
 		saveAs(new Blob([LSQueryWindowTools.arrayBufferFromString(wbout)],{type:"application/octet-stream"}), outputFileName + ".xlsx");
+	}
+	
+	copyResults()
+	{
+		var resultTable = this.resultContainer.firstChild;
+		if (!resultTable) return;
+		
+		var range = document.createRange();
+		range.selectNode(resultTable);
+		
+		var sel = window.getSelection();
+		sel.removeAllRanges();
+		sel.addRange(range);
+		
+		document.execCommand('copy');
+		sel.removeAllRanges();
 	}
 	
 	exit()

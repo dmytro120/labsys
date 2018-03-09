@@ -52,7 +52,7 @@ class LabSys extends ACApp
 		this.tb.setStyle(ST_BORDER_BOTTOM);
 		this.tb.setRadio(true);
 		this.tb.setItems([
-			{caption: 'Modes', icon: 'modes-w.png', action: this.displayModeInstances.bind(this) },
+			/*{caption: 'Modes', icon: 'modes-w.png', action: this.displayModeInstances.bind(this) },*/
 			{caption: 'Tables', icon: 'tables-w.png', action: this.initMode.bind(this, LSTableManager) },
 			{caption: 'Samples', icon: 'samples-w2.png', action: this.initMode.bind(this, LSSampleWindow) },
 			{caption: 'Query', icon: 'query-w.png', action: this.initMode.bind(this, LSQueryWindow) },
@@ -64,7 +64,8 @@ class LabSys extends ACApp
 		var captionCtrl = this.tb.setCaption(this.name.toLowerCase());
 		captionCtrl.style.fontFamily = 'FuturaO';
 		captionCtrl.addEventListener('click', e => {
-			this.about();
+			//this.about();
+			this.displayModeInstances();
 		});
 		
 		/*var versionCtrl = new ACStaticCell(captionCtrl);
