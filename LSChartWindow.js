@@ -70,7 +70,7 @@ class LSChartWindow extends ACFlexGrid
 					item.onclick = evt => {
 						browser.close();
 						var app = document.body.getElementsByTagName('ls-labsys')[0]; //document.body.firstChild;
-						app.initMode(LSSampleWindow, {sample: row.sample_number});
+						app.initMode(LSSampleWindow, {fromCode: true, sample: row.sample_number});
 					};
 				});
 				

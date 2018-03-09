@@ -67,6 +67,8 @@ class ACToolBar extends ACControl
 		if ('action' in data) a.action = data.action;
 		a.addEventListener('click', this._onItemSelected.bind(this));
 		
+		if ('dataset' in data) for (var key in data.dataset) li.dataset[key] = data.dataset[key];
+		
 		return li;
 	}
 	

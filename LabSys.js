@@ -7,7 +7,7 @@ class LabSys extends ACApp
 		super(document.body);
 		
 		this.setName('LabSys');
-		this.setVersion('0.0.4');
+		this.setVersion('0.0.5');
 		this.setLayout(['70px', 'auto'], ['100%']);
 		
 		this.mainCell = this.cell(1,0);
@@ -52,13 +52,13 @@ class LabSys extends ACApp
 		this.tb.setStyle(ST_BORDER_BOTTOM);
 		this.tb.setRadio(true);
 		this.tb.setItems([
-			/*{caption: 'Modes', icon: 'modes-w.png', action: this.displayModeInstances.bind(this) },*/
-			{caption: 'Tables', icon: 'tables-w.png', action: this.initMode.bind(this, LSTableManager) },
-			{caption: 'Samples', icon: 'samples-w2.png', action: this.initMode.bind(this, LSSampleWindow) },
-			{caption: 'Query', icon: 'query-w.png', action: this.initMode.bind(this, LSQueryWindow) },
-			{caption: 'Scripts', icon: 'scripts-w.png', action: this.initMode.bind(this, LSScriptWindow) },
-			{caption: 'Charts', icon: 'charts-w.png', action: this.initMode.bind(this, LSChartWindow) },
-			{caption: 'Map', icon: 'map-w.png', action: this.initMode.bind(this, ACMapView) }
+			{caption: 'Tables', icon: 'tables-w.png', action: this.initMode.bind(this, LSTableManager), dataset: {mode: 'LSTableManager'} },
+			{caption: 'Samples', icon: 'samples-w2.png', action: this.initMode.bind(this, LSSampleWindow), dataset: {mode: 'LSSampleWindow'} },
+			{caption: 'Query', icon: 'query-w.png', action: this.initMode.bind(this, LSQueryWindow), dataset: {mode: 'LSQueryWindow'} },
+			{caption: 'Scripts', icon: 'scripts-w.png', action: this.initMode.bind(this, LSScriptWindow), dataset: {mode: 'LSScriptWindow'} },
+			{caption: 'Import', icon: 'import-w.png', action: this.initMode.bind(this, LSImportWindow), dataset: {mode: 'LSImportWindow'} },
+			{caption: 'Charts', icon: 'charts-w.png', action: this.initMode.bind(this, LSChartWindow), dataset: {mode: 'LSChartWindow'} },
+			{caption: 'Map', icon: 'map-w.png', action: this.initMode.bind(this, ACMapView), dataset: {mode: 'ACMapView'} }
 		]);
 		
 		var captionCtrl = this.tb.setCaption(this.name.toLowerCase());
@@ -134,6 +134,11 @@ class LabSys extends ACApp
 		
 		this.activeMode = mode;
 		
+		if (params && 'fromCode' in params && params.fromCode) {
+			var toolbarItem = this.tb.querySelector('li[data-mode^="'+mode.constructor.name+'"]');
+			if (toolbarItem) this.tb.setActiveItem(toolbarItem);
+		}
+		
 		this.mainCell.appendChild(mode);
 		var modeAttachedFn = mode.onAttached;
 		if (modeAttachedFn) modeAttachedFn.call(mode, params);
@@ -158,12 +163,12 @@ class LabSys extends ACApp
 				var li = lb.addItem(className, className);
 				li.targetMode = this.modes[className];
 				li.ondblclick = event => {
-					this.setMode(event.target.targetMode);
+					this.setMode(event.target.targetMode, {fromCode: true});
 					modal.close();
 				};
 			}
 			modal.addButton('None', evt => {
-				this.setMode(null);
+				this.setMode(null, {fromCode: true});
 				modal.close();
 			});
 			modal.addButton('Release', evt => {
@@ -180,7 +185,7 @@ class LabSys extends ACApp
 			modal.addButton('Go To', evt => {
 				var si = lb.getSelectedItem();
 				if (si) {
-					this.setMode(si.targetMode);
+					this.setMode(si.targetMode, {fromCode: true});
 					modal.close();
 				}
 			});
