@@ -50,7 +50,8 @@ class LabSys
 			//},
 		});*/
 		
-		this.tb = new ACToolBar(this.grid.cell(0,0));
+		this.tb = new ACToolBar(this.grid.cell(0,0), { type: 'primary' });
+		this.tb.classList.add('ls-modebar');
 		this.tb.setStyle(ST_BORDER_BOTTOM);
 		this.tb.setRadio(true);
 		this.tb.setItems([

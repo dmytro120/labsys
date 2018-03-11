@@ -25,7 +25,7 @@ class LSTableManager extends ACController
 		this.listBox.addEventListener('itemSelected', this.selectItem.bind(this));
 		
 		// Item List Actions
-		var ab = new ACActionBar(this.grid.cell(1,0));
+		var ab = new ACToolBar(this.grid.cell(1,0));
 		ab.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
 		ab.setItems([
 			//{symbol:'plus', caption:'New Entry', action:this.createItem.bind(this)},
@@ -39,7 +39,7 @@ class LSTableManager extends ACController
 		this.grid.cell(0,1).style.verticalAlign = 'top';
 		
 		// Current Item Actions
-		this.vb = new ACActionBar(this.grid.cell(1,1));
+		this.vb = new ACToolBar(this.grid.cell(1,1));
 		this.vb.setStyle(ST_BORDER_TOP);
 		this.vb.setRadio(true);
 		/*this.vb.setItems([

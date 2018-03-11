@@ -23,7 +23,7 @@ class LSScriptWindow extends ACController
 		this.listBox.setRearrangeable(true);
 		this.listBox.addEventListener('itemSelected', this.selectItem.bind(this));
 		
-		var ab = new ACActionBar(this.grid.cell(1,0));
+		var ab = new ACToolBar(this.grid.cell(1,0));
 		ab.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
 		ab.setItems([
 			{symbol:'plus', caption:'New Entry', action:this.createItem.bind(this)},
@@ -57,7 +57,7 @@ class LSScriptWindow extends ACController
 		this.contentContainer.style.height = '100%';
 		this.contentContainer.style.overflow = 'auto';
 		
-		var vb = new ACActionBar(this.grid.cell(1,1));
+		var vb = new ACToolBar(this.grid.cell(1,1));
 		vb.setStyle(ST_BORDER_TOP);
 		vb.setItems([
 			{symbol:'play', caption:'Save Entry', action:this.runScript.bind(this)},

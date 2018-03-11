@@ -14,41 +14,6 @@ ac-flexgridsizer.lr { display: block; width: 7px; height: 100%; margin-left: -4p
 ac-flexgridsizer.ud { display: block; width: 100%; height: 7px; /*background-color: orange;*/ margin-top: -4px; cursor: row-resize; position: relative; }
 ac-flexgridsizer:active { /*cursor: col-resize !important; background-color: pink;*/ }
 
-/* ACActionBar, ACMenuBar, ACNavBar, ACToolBar */
-.navbar { margin-bottom: 0px; border-radius: 0px; min-height: 40px; }
-.navbar-nav > li > a { padding-top: 10px; padding-bottom: 10px; }
-.navbar a { cursor: default; }
-.navbar-inverse, .navbar-default { border-bottom-width: 0px; border-top-width: 0px; border-left-width: 0px; border-right-width: 0px; border-color: #ddd; }
-.navbar-inverse { background-color: rgb(0, 149, 143); color: white; } /* colorchange begins here */
-.navbar-inverse .navbar-brand { color: white; }
-.navbar-inverse .navbar-nav>li>a { color: white; }
-.navbar-inverse .navbar-nav>.open>a, .navbar-inverse .navbar-nav>.open>a:focus { background-color: rgb(0, 109, 103); }
-.navbar-inverse .navbar-nav>.dropdown>a:hover { background-color: rgb(0, 129, 123); }
-.navbar-inverse .navbar-nav>.open>a:hover { background-color: rgb(0, 109, 103); }
-
-/* NavBar lighter */
-.navbar-inverse.lighter { background-color: rgb(176, 234, 231); color: black; } /* colorchange begins here */
-.navbar-inverse.lighter .navbar-brand { color: black; }
-.navbar-inverse.lighter .navbar-nav>li>a { color: black; }
-.navbar-inverse.lighter .navbar-nav>.open>a, .navbar-inverse .navbar-nav>.open>a:focus { background-color: rgb(136, 194, 191); color: black; }
-.navbar-inverse.lighter .navbar-nav>.dropdown>a:hover { background-color: rgb(156, 214, 211); }
-.navbar-inverse.lighter .navbar-nav>.open>a:hover { background-color: rgb(136, 194, 191); }
-
-/* ACMenuBar */
-ac-menubar { min-height: auto !important; }
-ac-menubar.navbar-brand { padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; height: auto; font-size: inherit; font-weight: bold; }
-ac-menubar .navbar-nav>li>a { padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; }
-
-/* ACToolBar */
-.ToolBar { min-height: auto; /*padding-left: 4px;*/ user-select: none; }
-.ToolBar .navbar-nav>li>a { padding: 8px 4px; }
-.ToolBar .navbar-nav>li>a .bebox { width: 52px; height: 52px; padding: 8px; border-radius: 25px; background-position: center center; background-repeat: no-repeat; background-color: rgb(192,192,192); border: 1px solid #ddd; }
-.ToolBar.lighter .navbar-nav>li>a:hover { background-color: rgb(156, 214, 211); }
-.ToolBar .navbar-nav>li>a:hover .bebox { box-shadow: inset 0 0 24px #ddd; }
-.ToolBar .caption { float: right; font-size: 36pt; line-height: 74px; padding-right: 8px; color: #e9e9e9; }
-.ToolBar .caption:hover { color: #f6f6f6; }
-.navbar-inverse .navbar-nav > .active > a, .navbar-inverse .navbar-nav > .active > a:hover, .navbar-inverse .navbar-nav > .active > a:focus { background-color: rgb(0, 129, 123); }
-
 /* ACMapView */
 ac-mapview { display: block; width: 100%; height: 500px; }
 

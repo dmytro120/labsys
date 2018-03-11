@@ -7,7 +7,6 @@ class ACMenuBar extends ACControl
 		super(parentNode);
 		
 		this.classList.add('navbar', 'navbar-inverse');
-		this.style.display = 'block';
 		
 		this.headingNode = AC.create('div', this);
 		this.headingNode.classList.add('navbar-header');

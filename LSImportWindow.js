@@ -200,9 +200,8 @@ class LSImportWindow extends ACController
 			}
 		};
 		
-		var tb = new ACToolBar(this.grid.cell(0,0));
-		tb.classList.add('lighter');
-		tb.setIconSize('16x16');
+		var tb = new ACToolBar(this.grid.cell(0,0), { type: 'secondary' });
+		tb.classList.add('ls-toolbar');
 		tb.setStyle(ST_BORDER_BOTTOM);
 		tb.style.borderBottomColor = '#17817b';
 		tb.setItems([
@@ -233,7 +232,7 @@ class LSImportWindow extends ACController
 		// this.grid.cell(1,0) is contentarea
 		// this.grid.cell(2,0) is tabbed area
 		
-		this.tabCtrl = new ACActionBar(this.grid.cell(2,0));
+		this.tabCtrl = new ACToolBar(this.grid.cell(2,0));
 		this.tabCtrl.setStyle(ST_BORDER_TOP);
 		this.tabCtrl.setRadio(true);
 	}
