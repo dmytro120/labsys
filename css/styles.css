@@ -6,8 +6,7 @@ html, body { height: 100%; }
 }
 
 /* ACFlexGrid */
-ac-flexgrid, ls-labsys, ls-querywindow, ls-tablemanager, ls-samplewindow, 
-	ls-chartwindow, ls-scriptwindow, ls-importwindow { display: table; width: 100%; height: 100%; table-layout: fixed; }
+ac-flexgrid { display: table; width: 100%; height: 100%; table-layout: fixed; }
 ac-flexgridrow { display: table-row; }
 ac-flexgridcell { display: table-cell; }
 ac-flexgridsizer { z-index: 10; }
@@ -193,7 +192,7 @@ ac-onoffswitch>input:checked + label:before {
     right: 0px; 
 }
 
-ls-scriptwindow .ace_scroller, ls-querywindow .ace_scroller { /*border-bottom: 1px solid #ddd;*/ }
+ac-flexgrid .ace_scroller { /*border-bottom: 1px solid #ddd;*/ }
 
 /* Bootstrap Fix */
 .glyphicon { top: 0px; }
@@ -207,7 +206,7 @@ ac-listbox.list-group { display: block; margin-bottom: 0px; height: 100%; border
 .list-group-item:focus { outline: none; }
 .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: rgb(248, 248, 248); color: inherit; border-color: inherit; }
 ac-listbox.indrag .list-group-item:active { background-color: inherit; }
-ls-scriptwindow .list-group-item:last-child { border-bottom: 1px solid #ddd }
+.scriptlist .list-group-item:last-child { border-bottom: 1px solid #ddd }
 
 /* ACBrowseDialog */
 ac-browsedialog tbody>tr>th:first-child, ac-browsedialog tbody>tr>td:first-child { padding-left: 15px; }

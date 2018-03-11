@@ -1,27 +1,30 @@
 'use strict';
 
-class LSScriptWindow extends ACFlexGrid
+class LSScriptWindow extends ACController
 {
-	constructor(parentNode)
+	constructor(rootNode)
 	{
-		super(parentNode);
-		this.setLayout(['auto', '40px'], ['20%', 'auto']);
-		this.addSizer(0, AC_DIR_VERTICAL);
+		super(rootNode);
+		
+		this.grid = new ACFlexGrid(this.rootNode);
+		this.grid.setLayout(['auto', '40px'], ['20%', 'auto']);
+		this.grid.addSizer(0, AC_DIR_VERTICAL);
 		
 		// Left
-		var listContainer = new ACStaticCell(this.cell(0,0));
+		var listContainer = new ACStaticCell(this.grid.cell(0,0));
 		listContainer.style.height = '100%';
 		listContainer.style.overflow = 'auto';
-		this.cell(0,0).style.borderRight = '1px solid #ddd';
-		this.cell(0,0).style.verticalAlign = 'top';
+		this.grid.cell(0,0).style.borderRight = '1px solid #ddd';
+		this.grid.cell(0,0).style.verticalAlign = 'top';
 		this.lcScrollTop = null;
 		listContainer.onscroll = function(evt) { this.lcScrollTop = listContainer.scrollTop }.bind(this);
 
 		this.listBox = new ACListBox(listContainer);
+		this.listBox.classList.add('scriptlist');
 		this.listBox.setRearrangeable(true);
 		this.listBox.addEventListener('itemSelected', this.selectItem.bind(this));
 		
-		var ab = new ACActionBar(this.cell(1,0));
+		var ab = new ACActionBar(this.grid.cell(1,0));
 		ab.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
 		ab.setItems([
 			{symbol:'plus', caption:'New Entry', action:this.createItem.bind(this)},
@@ -32,7 +35,7 @@ class LSScriptWindow extends ACFlexGrid
 		]);
 		
 		// Right
-		this.itemGrid = new ACFlexGrid(this.cell(0,1));
+		this.itemGrid = new ACFlexGrid(this.grid.cell(0,1));
 		this.itemGrid.setLayout(['50%', 'auto'], ['100%']);
 		this.itemGrid.addSizer(0, AC_DIR_HORIZONTAL);
 		
@@ -56,7 +59,7 @@ class LSScriptWindow extends ACFlexGrid
 		this.contentContainer.style.height = '100%';
 		this.contentContainer.style.overflow = 'auto';
 		
-		var vb = new ACActionBar(this.cell(1,1));
+		var vb = new ACActionBar(this.grid.cell(1,1));
 		vb.setStyle(ST_BORDER_TOP);
 		vb.setItems([
 			{symbol:'play', caption:'Save Entry', action:this.runScript.bind(this)},
@@ -67,6 +70,7 @@ class LSScriptWindow extends ACFlexGrid
 	
 	onAttached()
 	{
+		this.rootNode.appendChild(this.grid);
 		this.readScripts();
 		if (this.contentContainerScrollTop) this.contentContainer.scrollTop = this.contentContainerScrollTop;
 	}
@@ -286,9 +290,7 @@ class LSScriptWindow extends ACFlexGrid
 	
 	exit()
 	{
-		this.dispatchEvent(new Event('quit'));
+		this.dispatchEvent('quit');
 	}
 }
 LSScriptWindow.counter = 1;
-
-window.customElements.define('ls-scriptwindow', LSScriptWindow);

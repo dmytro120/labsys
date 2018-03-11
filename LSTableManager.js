@@ -1,30 +1,32 @@
 'use strict';
 
-class LSTableManager extends ACFlexGrid
+class LSTableManager extends ACController
 {
-	constructor(parentNode)
+	constructor(rootNode)
 	{
-		super(parentNode);
-		this.setLayout(['auto', '40px'], ['20%', '80%']);
-		this.addSizer(0, AC_DIR_VERTICAL);
+		super(rootNode);
+		
+		this.grid = new ACFlexGrid(this.rootNode);
+		this.grid.setLayout(['auto', '40px'], ['20%', '80%']);
+		this.grid.addSizer(0, AC_DIR_VERTICAL);
 		
 		this.itemType = 'ANALYSIS';
 		this.keyFields = ['NAME', 'VERSION'];
 		
-		var listContainer = new ACStaticCell(this.cell(0,0));
+		var listContainer = new ACStaticCell(this.grid.cell(0,0));
 		listContainer.style.height = '100%';
 		listContainer.style.overflow = 'auto';
-		this.cell(0,0).style.borderRight = '1px solid #ddd';
+		this.grid.cell(0,0).style.borderRight = '1px solid #ddd';
 		this.lcScrollTop = null;
 		listContainer.onscroll = function(evt) { this.lcScrollTop = listContainer.scrollTop }.bind(this);
 
 		this.listBox = new ACListBox(listContainer);
 		//this.listBox.setStyle(ST_BORDER_RIGHT);
-		//this.listBox.style.height = this.cell(0,0).height; // added 09.12.2016
+		//this.listBox.style.height = this.grid.cell(0,0).height; // added 09.12.2016
 		this.listBox.addEventListener('itemSelected', this.selectItem.bind(this));
 		
 		// Item List Actions
-		var ab = new ACActionBar(this.cell(1,0));
+		var ab = new ACActionBar(this.grid.cell(1,0));
 		ab.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
 		ab.setItems([
 			//{symbol:'plus', caption:'New Entry', action:this.createItem.bind(this)},
@@ -35,10 +37,10 @@ class LSTableManager extends ACFlexGrid
 			{symbol:'step-forward', caption:'Next Record', action:this.recNext.bind(this)}
 		]);
 		
-		this.cell(0,1).style.verticalAlign = 'top';
+		this.grid.cell(0,1).style.verticalAlign = 'top';
 		
 		// Current Item Actions
-		this.vb = new ACActionBar(this.cell(1,1));
+		this.vb = new ACActionBar(this.grid.cell(1,1));
 		this.vb.setStyle(ST_BORDER_TOP);
 		this.vb.setRadio(true);
 		/*this.vb.setItems([
@@ -48,7 +50,7 @@ class LSTableManager extends ACFlexGrid
 		]);*/
 		
 		// MarvinJS experimental implementation
-		var iframe = AC.create('iframe', this.cell(1,1));
+		var iframe = AC.create('iframe', this.grid.cell(1,1));
 		iframe.style.display = 'none';
 		iframe.style.width = iframe.style.height = '1px';
 		iframe.src = 'pkg/marvin/marvinpack.html';
@@ -88,6 +90,7 @@ class LSTableManager extends ACFlexGrid
 	
 	onAttached()
 	{
+		this.rootNode.appendChild(this.grid);
 		this.loadData();
 	}
 	
@@ -108,7 +111,7 @@ class LSTableManager extends ACFlexGrid
 				}
 			});
 			
-			if (!wasSameItemFound && Array.from(this.cell(0,1).children).length > 1) this.cell(0,1).lastChild.remove();
+			if (!wasSameItemFound && Array.from(this.grid.cell(0,1).children).length > 1) this.grid.cell(0,1).lastChild.remove();
 			//else console.log('TODO: Redraw item in 0,1');
 			
 			if (typeof thenFn !== 'undefined' && typeof thenFn.constructor == 'Function') thenFn();
@@ -159,7 +162,7 @@ class LSTableManager extends ACFlexGrid
 				this.itemType = evt.detail.id;
 				this.keyFields = evt.detail.keyFields.split(' ');
 				dialog.close();
-				if (Array.from(this.cell(0,1).children).length > 1) this.cell(0,1).lastChild.remove();
+				if (Array.from(this.grid.cell(0,1).children).length > 1) this.grid.cell(0,1).lastChild.remove();
 				this.lcScrollTop = 0;
 				this.loadData();
 			});
@@ -172,7 +175,7 @@ class LSTableManager extends ACFlexGrid
 	selectItem(evt)
 	{
 		var item = evt.detail.item;
-		if (Array.from(this.cell(0,1).children).length > 1) this.cell(0,1).lastChild.remove();
+		if (Array.from(this.grid.cell(0,1).children).length > 1) this.grid.cell(0,1).lastChild.remove();
 		
 		DB.query("\
 			SELECT * \
@@ -181,8 +184,8 @@ class LSTableManager extends ACFlexGrid
 			" + (this.keyFields.includes('VERSION') ? "AND version = (SELECT version FROM versions WHERE table_name = '" + this.itemType + "' AND name = x.name)" : "") + " \
 		", rows => {
 			if (rows.length < 1) {
-				if (Array.from(this.cell(0,1).children).length > 1) this.cell(0,1).lastChild.remove();
-				var sc = new ACStaticCell(this.cell(0,1));
+				if (Array.from(this.grid.cell(0,1).children).length > 1) this.grid.cell(0,1).lastChild.remove();
+				var sc = new ACStaticCell(this.grid.cell(0,1));
 				sc.textContent = this.itemType + ' ' + item.dataset.id + ' not found in current database';
 				sc.style.color = 'red';
 				return;
@@ -197,10 +200,10 @@ class LSTableManager extends ACFlexGrid
 				WHERE fm.table_name = '" + this.itemType + "' AND fm.hidden = 'F' AND fm.field_name NOT IN ('NAME', 'CHANGED_BY', 'CHANGED_ON', 'REMOVED') \
 				ORDER BY (CASE WHEN ft.group_title IS NULL THEN 0 ELSE 1 END), ft.group_title, ft.order_number \
 			", schemaRows => {
-				if (Array.from(this.cell(0,1).children).length > 1) this.cell(0,1).lastChild.remove();
+				if (Array.from(this.grid.cell(0,1).children).length > 1) this.grid.cell(0,1).lastChild.remove();
 				
 				// Item Info and Details FlexGrid
-				var itemInfoAndDetailsGrid = new ACFlexGrid(this.cell(0,1));
+				var itemInfoAndDetailsGrid = new ACFlexGrid(this.grid.cell(0,1));
 				itemInfoAndDetailsGrid.setLayout(['40px', 'auto'], ['100%']); //'10px', 
 				
 				/*// MenuBar
@@ -529,7 +532,7 @@ class LSTableManager extends ACFlexGrid
 		if (item && confirm("Item will be removed")) {
 			DB.query("DELETE FROM "+this.itemType+" WHERE id = " + item.dataset.id, result => {
 				this.loadData();
-				var cell = this.cell(0,1).clear();
+				var cell = this.grid.cell(0,1).clear();
 			});
 		}*/
 		alert('Not implemented');
@@ -537,8 +540,6 @@ class LSTableManager extends ACFlexGrid
 	
 	exit()
 	{
-		this.dispatchEvent(new Event('quit'));
+		this.dispatchEvent('quit');
 	}
 }
-
-window.customElements.define('ls-tablemanager', LSTableManager);

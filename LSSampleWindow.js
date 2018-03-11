@@ -1,13 +1,15 @@
 'use strict';
 
-class LSSampleWindow extends ACFlexGrid
+class LSSampleWindow extends ACController
 {
-	constructor(parentNode)
+	constructor(rootNode)
 	{
-		super(parentNode);
-		this.setLayout(['10px', 'auto'], ['100%']);
+		super(rootNode);
 		
-		var tb = new ACToolBar(this.cell(0,0));
+		this.grid = new ACFlexGrid(this.rootNode);
+		this.grid.setLayout(['10px', 'auto'], ['100%']);
+		
+		var tb = new ACToolBar(this.grid.cell(0,0));
 		tb.classList.add('lighter');
 		tb.setIconSize('20x20');
 		tb.setStyle(ST_BORDER_BOTTOM);
@@ -17,7 +19,7 @@ class LSSampleWindow extends ACFlexGrid
 			{caption: 'Open Sample', icon: 'open.png', action: this.promptForSample.bind(this) }
 		]);
 		
-		var grid = new ACFlexGrid(this.cell(1,0));
+		var grid = new ACFlexGrid(this.grid.cell(1,0));
 		grid.setLayout(['auto'], ['20%', 'auto']);
 		grid.addSizer(0, AC_DIR_VERTICAL);
 		
@@ -35,6 +37,7 @@ class LSSampleWindow extends ACFlexGrid
 	
 	onAttached(params)
 	{
+		this.rootNode.appendChild(this.grid);
 		if (params && params.sample) {
 			this.openSample(params.sample, e => {
 				this.tv.firstChild.lastChild.select();
@@ -216,8 +219,6 @@ class LSSampleWindow extends ACFlexGrid
 	
 	exit()
 	{
-		this.dispatchEvent(new Event('quit'));
+		this.dispatchEvent('quit');
 	}
 }
-
-window.customElements.define('ls-samplewindow', LSSampleWindow);

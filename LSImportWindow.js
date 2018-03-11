@@ -3,14 +3,16 @@
 const INSERT_CLAUSE = 1;
 const UPDATE_CLAUSE = 2;
 
-class LSImportWindow extends ACFlexGrid
+class LSImportWindow extends ACController
 {
-	constructor(parentNode)
+	constructor(rootNode)
 	{
-		super(parentNode);
-		this.setLayout(['10px', 'auto', '40px'], ['100%']);
+		super(rootNode);
 		
-		this.outputArea = new ACStaticCell(this.cell(1,0));
+		this.grid = new ACFlexGrid(this.rootNode);
+		this.grid.setLayout(['10px', 'auto', '40px'], ['100%']);
+		
+		this.outputArea = new ACStaticCell(this.grid.cell(1,0));
 		this.outputArea.style.width = this.outputArea.style.height = '100%';
 		this.outputArea.style.overflow = 'auto';
 		
@@ -199,7 +201,7 @@ class LSImportWindow extends ACFlexGrid
 			}
 		};
 		
-		var tb = new ACToolBar(this.cell(0,0));
+		var tb = new ACToolBar(this.grid.cell(0,0));
 		tb.classList.add('lighter');
 		tb.setIconSize('20x20');
 		tb.setStyle(ST_BORDER_BOTTOM);
@@ -229,16 +231,17 @@ class LSImportWindow extends ACFlexGrid
 			this.readFile(file);
 		});
 		
-		// this.cell(1,0) is contentarea
-		// this.cell(2,0) is tabbed area
+		// this.grid.cell(1,0) is contentarea
+		// this.grid.cell(2,0) is tabbed area
 		
-		this.tabCtrl = new ACActionBar(this.cell(2,0));
+		this.tabCtrl = new ACActionBar(this.grid.cell(2,0));
 		this.tabCtrl.setStyle(ST_BORDER_TOP);
 		this.tabCtrl.setRadio(true);
 	}
 	
 	onAttached()
 	{
+		this.rootNode.appendChild(this.grid);
 		if (this.contentContainerScrollTop) this.outputArea.scrollTop = this.contentContainerScrollTop;
 	}
 	
@@ -257,7 +260,7 @@ class LSImportWindow extends ACFlexGrid
 	
 	exit()
 	{
-		this.dispatchEvent(new Event('quit'));
+		this.dispatchEvent('quit');
 	}
 	
 	setTables(localStorageVarName)
@@ -573,5 +576,3 @@ class LSImportWindow extends ACFlexGrid
 			);
 	}
 }
-
-window.customElements.define('ls-importwindow', LSImportWindow);

@@ -1,18 +1,20 @@
 'use strict';
 
-class LSQueryWindow extends ACFlexGrid
+class LSQueryWindow extends ACController
 {
-	constructor(parentNode)
+	constructor(rootNode)
 	{
-		super(parentNode);
-		this.setLayout(['auto', '39px', 'auto'], ['100%']);
+		super(rootNode);
 		
-		var sizer = this.addSizer(0, AC_DIR_HORIZONTAL);
+		this.grid = new ACFlexGrid(this.rootNode);
+		this.grid.setLayout(['auto', '39px', 'auto'], ['100%']);
+		
+		var sizer = this.grid.addSizer(0, AC_DIR_HORIZONTAL);
 		sizer.style.height = '100%';
 		sizer.style.marginTop = '0';
 		sizer.style.paddingTop = '4px';
 		
-		var topCell = this.cell(0,0);
+		var topCell = this.grid.cell(0,0);
 		this.queryCtrl = ace.edit(topCell);
 		this.queryCtrl.$blockScrolling = Infinity;
 		this.queryCtrl.setTheme("ace/theme/xcode");
@@ -37,7 +39,7 @@ class LSQueryWindow extends ACFlexGrid
 			this.queryCtrl.commands.exec("paste",this.queryCtrl,n);
 		}
 		//this.queryCtrl.style.borderBottom = '1px solid #ddd';
-		this.addEventListener('layoutChanged', e => {
+		this.grid.addEventListener('layoutChanged', e => {
 			this.queryCtrl.resize(true);
 		});
 		var preText = localStorage.getItem("LSQueryWindowText");
@@ -46,7 +48,7 @@ class LSQueryWindow extends ACFlexGrid
 			localStorage.setItem("LSQueryWindowText", this.queryCtrl.getValue());
 		});
 		
-		var middleCell = this.cell(1,0);
+		var middleCell = this.grid.cell(1,0);
 		middleCell.style.verticalAlign = 'middle';
 		middleCell.style.backgroundColor = '#f8f8f8';
 		middleCell.style.borderTop = '1px solid #ddd';
@@ -78,7 +80,7 @@ class LSQueryWindow extends ACFlexGrid
 		this.copyButton.textContent = 'Copy Table';
 		this.copyButton.onclick = this.copyResults.bind(this);
 		
-		this.resultContainer = AC.create('div', this.cell(2,0));
+		this.resultContainer = AC.create('div', this.grid.cell(2,0));
 		this.resultContainer.style.width = '100%';
 		this.resultContainer.style.maxWidth = '100%';
 		this.resultContainer.style.height = '100%';
@@ -88,6 +90,7 @@ class LSQueryWindow extends ACFlexGrid
 	
 	onAttached()
 	{
+		this.rootNode.appendChild(this.grid);
 		if (this.resultContainerScrollTop) this.resultContainer.scrollTop = this.resultContainerScrollTop;
 		this.queryCtrl.focus();
 	}
@@ -125,8 +128,8 @@ class LSQueryWindow extends ACFlexGrid
 		this.runButton.disabled = this.xlsxButton.disabled = this.copyButton.disabled = true;
 		
 		// fix control jump issue
-		var cr = this.cell(0,0).getBoundingClientRect();
-		this.cell(0,0).style.minHeight = this.cell(0,0).style.height = cr.height + 'px';
+		var cr = this.grid.cell(0,0).getBoundingClientRect();
+		this.grid.cell(0,0).style.minHeight = this.grid.cell(0,0).style.height = cr.height + 'px';
 		
 		DB.query(query, result => {
 			if ((result.length && result.length > 0) || Object.keys(result).length > 0) { 
@@ -304,7 +307,7 @@ class LSQueryWindow extends ACFlexGrid
 	
 	exit()
 	{
-		this.dispatchEvent(new Event('quit'));
+		this.dispatchEvent('quit');
 	}
 }
 
@@ -437,5 +440,3 @@ class LSQueryWindowTools
         return( arrData );
     }
 }
-
-window.customElements.define('ls-querywindow', LSQueryWindow);

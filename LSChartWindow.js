@@ -1,11 +1,13 @@
 'use strict';
 
-class LSChartWindow extends ACFlexGrid
+class LSChartWindow extends ACController
 {
-	constructor(parentNode)
+	constructor(rootNode)
 	{
-		super(parentNode);
-		this.setLayout(['98%', '2%'], ['98%', '2%']);
+		super(rootNode);
+		
+		this.grid = new ACFlexGrid(this.rootNode);
+		this.grid.setLayout(['98%', '2%'], ['98%', '2%']);
 		
 		google.charts.load('current', {'packages':['corechart']});
 		google.charts.setOnLoadCallback(evt => {
@@ -34,7 +36,7 @@ class LSChartWindow extends ACFlexGrid
 					title: 'Sample Statuses'
 				};
 
-				this.chart = new google.visualization.PieChart(this.cell(0,0));
+				this.chart = new google.visualization.PieChart(this.grid.cell(0,0));
 				google.visualization.events.addListener(this.chart, 'select', this.browseSamples.bind(this));
 				this.chart.draw(this.data, options);
 			});
@@ -43,7 +45,7 @@ class LSChartWindow extends ACFlexGrid
 	
 	onAttached()
 	{
-		
+		this.rootNode.appendChild(this.grid);
 	}
 	
 	browseSamples()
@@ -69,8 +71,8 @@ class LSChartWindow extends ACFlexGrid
 					var item = browser.addItem(row);
 					item.onclick = evt => {
 						browser.close();
-						var app = document.body.getElementsByTagName('ls-labsys')[0]; //document.body.firstChild;
-						app.initMode(LSSampleWindow, {fromCode: true, sample: row.sample_number});
+						//var app = document.body.getElementsByTagName('ls-labsys')[0]; //document.body.firstChild;
+						//app.initMode(LSSampleWindow, {fromCode: true, sample: row.sample_number});
 					};
 				});
 				
@@ -92,8 +94,6 @@ class LSChartWindow extends ACFlexGrid
 	
 	exit()
 	{
-		this.dispatchEvent(new Event('quit'));
+		this.dispatchEvent('quit');
 	}
 }
-
-window.customElements.define('ls-chartwindow', LSChartWindow);
