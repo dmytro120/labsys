@@ -20,12 +20,12 @@ class LabSys
 		//nb.setHeading(this.name, this.initialUI.bind(this));
 		nb.setItems({
 			[this.name]: {
-				'About...': this.about.bind(this),
+				'About...': this.settings.bind(this),
 				'Restart': this.restart.bind(this)
 			},
 			'Mode': {
 				'Null Active Mode': this.setMode.bind(this, null),
-				'Instantiated Mode Instances...': this.displayModeInstances.bind(this)
+				'Instantiated Mode Instances...': this.settings.bind(this)
 			},
 			'Configure': {
 				'Manage Tables...': this.initMode.bind(this, LSTableManager)
@@ -67,8 +67,7 @@ class LabSys
 		var captionCtrl = this.tb.setCaption(this.name.toLowerCase());
 		captionCtrl.style.fontFamily = 'FuturaO';
 		captionCtrl.addEventListener('click', e => {
-			//this.about();
-			this.displayModeInstances();
+			this.settings();
 		});
 		
 		/*var versionCtrl = new ACStaticCell(captionCtrl);
@@ -171,14 +170,48 @@ class LabSys
 		delete this.modes[className];
 	}
 	
-	displayModeInstances()
+	settings()
 	{
-		var modal = new ACDialog(document.body);
-		modal.setTitle('Instantiated Mode Instances');
+		// Basic Modal Setup with header, content cell, and footer
+		var modal = new ACModal(document.body);
+		modal.contentArea.style.borderRadius = '0';
+		
+		var mh = new ACStaticCell(modal.contentArea);
+		mh.classList.add('modal-header');
+		mh.style.padding = '0';
+		
+		var contentCell = new ACStaticCell(modal.contentArea);
+		contentCell.classList.add('modal-body');
+		contentCell.style.padding = '0';
+		
+		// Radio Bar
+		var radioBar = new ACToolBar(mh, { type: 'primary' });
+		radioBar.setRadio(true);
+		var setTarget = target => {
+			if (!lastActiveSheet) return;
+			lastActiveSheet.style.display = 'none';
+			target.style.display = 'block';
+			lastActiveSheet = target;
+		};
+		
+		// Modes Sheet
+		var modesSheet = new ACStaticCell(contentCell);
+		var lastActiveSheet = modesSheet;
+		
+		var modeBtn = radioBar.addItem({
+			caption: 'Modes', icon: 'switch.png', action: evt => {
+				setTarget(modesSheet);
+			}
+		});
+		radioBar.setActiveItem(modeBtn);
+		
+		var notice = new ACStaticCell(modesSheet);
+		notice.textContent = 'No modes instantiated';
+		notice.style.padding = '12px';
 		
 		if (Object.keys(this.modes).length > 0) {
-			modal.contentCell.style.padding = '0';
-			var lb = new ACListBox(modal.contentCell);
+			notice.style.display = 'none';
+			var lb = new ACListBox(modesSheet);
 			for (var className in this.modes) {
 				var li = lb.addItem(className, className);
 				li.targetMode = this.modes[className];
@@ -187,42 +220,65 @@ class LabSys
 					modal.close();
 				};
 			}
-			modal.addButton('None', evt => {
+		}
+		
+		var modesToolbar = new ACToolBar(modesSheet, { type: 'secondary' });
+		modesToolbar.setStyle(ST_BORDER_BOTTOM);
+		modesToolbar.style.borderTop = '1px solid #ddd';
+		
+		modesToolbar.addItem({
+			caption: 'None', icon: 'sweep.png', action: evt => {
 				this.setMode(null, {fromCode: true});
 				modal.close();
-			});
-			modal.addButton('Release', evt => {
+			}
+		});
+		
+		modesToolbar.addItem({
+			caption: 'Destroy', icon: 'bin.png', action: evt => {
+				if (!lb) return;
 				var si = lb.getSelectedItem();
 				if (si) {
 					this.deleteModeByClassName(si.dataset.id);
 					si.remove();
 					if (lb.itemCount() < 1) {
-						modal.contentCell.remove();
-						modal.footerCell.style.borderTopWidth = '0';
+						notice.style.display = 'block';
 					}
 				}
-			});
-			modal.addButton('Go To', evt => {
+			}
+		});
+		
+		modesToolbar.addItem({
+			caption: 'Go To', icon: 'goto.png', action: evt => {
+				if (!lb) return;
 				var si = lb.getSelectedItem();
 				if (si) {
 					this.setMode(si.targetMode, {fromCode: true});
 					modal.close();
 				}
-			});
-		} else {
-			modal.contentCell.remove();
-			modal.footerCell.style.borderTopWidth = '0';
-		}
+			} 
+		});
 		
-		modal.display();
-	}
-	
-	about()
-	{
-		var modal = new ACAboutModal(document.body);
-		modal.setTitle(this.name + ' ' + this.version);
-		modal.setImagePath('rsrc/about.jpg');
-		modal.setURL('http://dmytro.malikov.us/labsys/');
+		// About Sheet
+		var aboutSheet = new ACStaticCell(contentCell);
+		aboutSheet.style.padding = '12px';
+		aboutSheet.style.display = 'none';
+		var aboutBtn = radioBar.addItem({
+			caption: 'About', icon: 'info.png', action: evt => {
+				setTarget(aboutSheet);
+			}
+		});
+		
+		var hCell = new ACStaticCell(aboutSheet);
+		hCell.textContent = this.name + ' ' + this.version;
+		hCell.style.fontSize = 'x-large';
+		
+		var infoCell = new ACStaticCell(aboutSheet);
+		infoCell.textContent = 'Laboratory informatics software';
+		
+		var a = AC.create('a', aboutSheet);
+		a.target = '_blank';
+		a.href = a.textContent = 'http://dmytro.malikov.us/labsys/';
+		
 		modal.display();
 	}
 	
@@ -237,3 +293,20 @@ class LabSys
 		new LabSys();
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

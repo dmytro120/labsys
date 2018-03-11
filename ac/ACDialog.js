@@ -43,9 +43,10 @@ class ACDialog extends ACModal
 	
 	addButton(caption, action)
 	{
+		if (!this.footerCell) return;
 		var btn = AC.create('button', this.footerCell);
 		btn.setAttribute('type', 'button');
-		btn.classList.add('btn', 'btn-default');
+		btn.classList.add('btn', 'btn-default', 'btn-sm');
 		btn.textContent = caption;
 		if (action) btn.onclick = action;
 		return btn;
