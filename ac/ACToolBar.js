@@ -25,6 +25,7 @@ class ACToolBar extends ACControl
 		a.setAttribute('title', data.caption);
 		
 		if (this.iconSize == '32x32') {
+			this.style.borderBottomColor = '#17817b';
 			/*a.style.paddingBottom = '4px';
 			
 			var img = AC.create('div', a);
@@ -52,7 +53,7 @@ class ACToolBar extends ACControl
 			a.style.lineHeight = '24px';
 			a.style.backgroundImage = 'url(rsrc/' + this.iconSize + '/' + data.icon + ')';
 			a.style.backgroundRepeat = 'no-repeat';
-			a.style.backgroundPosition = '6px 2px';
+			a.style.backgroundPosition = '6px 4px';
 			a.style.padding = '0';
 			a.style.paddingLeft = '28px';
 			a.style.paddingRight = '8px';

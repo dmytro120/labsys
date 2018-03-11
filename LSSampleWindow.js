@@ -10,9 +10,9 @@ class LSSampleWindow extends ACController
 		
 		var tb = new ACToolBar(this.grid.cell(0,0));
 		tb.classList.add('lighter');
-		tb.setIconSize('20x20');
+		tb.setIconSize('16x16');
 		tb.setStyle(ST_BORDER_BOTTOM);
-		tb.style.borderBottomColor = 'gray';
+		tb.style.borderBottomColor = '#17817b';
 		tb.setItems([
 			{caption: 'Exit', icon: 'quit.png', action: this.exit.bind(this) },
 			{caption: 'Open Sample', icon: 'open.png', action: this.promptForSample.bind(this) }
