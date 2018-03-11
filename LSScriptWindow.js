@@ -6,8 +6,7 @@ class LSScriptWindow extends ACController
 	{
 		super(rootNode);
 		
-		this.grid = new ACFlexGrid(this.rootNode);
-		this.grid.setLayout(['auto', '40px'], ['20%', 'auto']);
+		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['auto', '40px'], colWidths:['20%', 'auto'] });
 		this.grid.addSizer(0, AC_DIR_VERTICAL);
 		
 		// Left
@@ -35,8 +34,7 @@ class LSScriptWindow extends ACController
 		]);
 		
 		// Right
-		this.itemGrid = new ACFlexGrid(this.grid.cell(0,1));
-		this.itemGrid.setLayout(['50%', 'auto'], ['100%']);
+		this.itemGrid = new ACFlexGrid(this.grid.cell(0,1), { rowHeights:['50%', 'auto'], colWidths:['100%'] });
 		this.itemGrid.addSizer(0, AC_DIR_HORIZONTAL);
 		
 		this.scriptCtrl = ace.edit(this.itemGrid.cell(0,0));

@@ -6,8 +6,7 @@ class LSChartWindow extends ACController
 	{
 		super(rootNode);
 		
-		this.grid = new ACFlexGrid(this.rootNode);
-		this.grid.setLayout(['98%', '2%'], ['98%', '2%']);
+		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['98%', '2%'], colWidths:['98%', '2%'] });
 		
 		google.charts.load('current', {'packages':['corechart']});
 		google.charts.setOnLoadCallback(evt => {

@@ -6,8 +6,7 @@ class LSTableManager extends ACController
 	{
 		super(rootNode);
 		
-		this.grid = new ACFlexGrid(this.rootNode);
-		this.grid.setLayout(['auto', '40px'], ['20%', '80%']);
+		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['auto', '40px'], colWidths:['20%', '80%'] });
 		this.grid.addSizer(0, AC_DIR_VERTICAL);
 		
 		this.itemType = 'ANALYSIS';
@@ -203,8 +202,7 @@ class LSTableManager extends ACController
 				if (Array.from(this.grid.cell(0,1).children).length > 1) this.grid.cell(0,1).lastChild.remove();
 				
 				// Item Info and Details FlexGrid
-				var itemInfoAndDetailsGrid = new ACFlexGrid(this.grid.cell(0,1));
-				itemInfoAndDetailsGrid.setLayout(['40px', 'auto'], ['100%']); //'10px', 
+				var itemInfoAndDetailsGrid = new ACFlexGrid(this.grid.cell(0,1), { rowHeights:['40px', 'auto'], colWidths:['100%'] });
 				
 				/*// MenuBar
 				var nb = new ACMenuBar(itemInfoAndDetailsGrid.cell(0,0));
@@ -250,8 +248,7 @@ class LSTableManager extends ACController
 				]);*/
 				
 				// Item Info FlexGrid
-				var itemInfoGrid = new ACFlexGrid(itemInfoAndDetailsGrid.cell(0,0)); //1
-				itemInfoGrid.setLayout(['12px','auto','12px'], ['12px','6%','20%','10%','22%','10%','auto','12px']);
+				var itemInfoGrid = new ACFlexGrid(itemInfoAndDetailsGrid.cell(0,0), { rowHeights:['12px','auto','12px'], colWidths:['12px','6%','20%','10%','22%','10%','auto','12px'] }); //1
 				itemInfoGrid.style.backgroundColor = 'rgb(176, 234, 231)';
 				
 				var c1 = itemInfoGrid.cell(1,1);

@@ -2,10 +2,11 @@
 
 class ACFlexGrid extends ACControl
 {
-	constructor(parentNode)
+	constructor(parentNode, params)
 	{
 		super(parentNode);
 		this.cells = [];
+		if (params && 'rowHeights' in params && 'colWidths' in params) this.setLayout(params.rowHeights, params.colWidths);
 	}
 	
 	empty()

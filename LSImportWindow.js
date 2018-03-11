@@ -9,8 +9,7 @@ class LSImportWindow extends ACController
 	{
 		super(rootNode);
 		
-		this.grid = new ACFlexGrid(this.rootNode);
-		this.grid.setLayout(['10px', 'auto', '40px'], ['100%']);
+		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '40px'], colWidths:['100%'] });
 		
 		this.outputArea = new ACStaticCell(this.grid.cell(1,0));
 		this.outputArea.style.width = this.outputArea.style.height = '100%';

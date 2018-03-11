@@ -6,8 +6,7 @@ class LSQueryWindow extends ACController
 	{
 		super(rootNode);
 		
-		this.grid = new ACFlexGrid(this.rootNode);
-		this.grid.setLayout(['auto', '39px', 'auto'], ['100%']);
+		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['auto', '39px', 'auto'], colWidths:['100%'] });
 		
 		var sizer = this.grid.addSizer(0, AC_DIR_HORIZONTAL);
 		sizer.style.height = '100%';

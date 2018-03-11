@@ -6,8 +6,7 @@ class LSSampleWindow extends ACController
 	{
 		super(rootNode);
 		
-		this.grid = new ACFlexGrid(this.rootNode);
-		this.grid.setLayout(['10px', 'auto'], ['100%']);
+		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto'], colWidths:['100%'] });
 		
 		var tb = new ACToolBar(this.grid.cell(0,0));
 		tb.classList.add('lighter');
@@ -19,8 +18,7 @@ class LSSampleWindow extends ACController
 			{caption: 'Open Sample', icon: 'open.png', action: this.promptForSample.bind(this) }
 		]);
 		
-		var grid = new ACFlexGrid(this.grid.cell(1,0));
-		grid.setLayout(['auto'], ['20%', 'auto']);
+		var grid = new ACFlexGrid(this.grid.cell(1,0), { rowHeights:['auto'], colWidths:['20%', 'auto'] });
 		grid.addSizer(0, AC_DIR_VERTICAL);
 		
 		//grid.cell(0,1).style.backgroundColor = 'red';

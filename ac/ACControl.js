@@ -2,7 +2,7 @@
 
 class ACControl extends HTMLElement
 {
-	constructor(parentNode)
+	constructor(parentNode, params)
 	{
 		super();
 		if (parentNode) parentNode.appendChild(this);
