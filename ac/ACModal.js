@@ -18,9 +18,10 @@ class ACModal extends ACControl
 		
 		this.bsSelector = new window.BSModal(this, {duration: 1});
 		
-		this.addEventListener('hidden.bs.modal', function () {
-			this.dispatchEvent(new CustomEvent('close'));
-			this.remove();
+		this.bsSelector.modal.addEventListener('hidden.bs.modal', evt => {
+			var cancelled = !this.dispatchEvent(new CustomEvent('close', {cancelable: true}));
+			if (cancelled) evt.preventDefault();
+			else this.remove();
 		});
 	}
 	

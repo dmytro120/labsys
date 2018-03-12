@@ -822,7 +822,8 @@
       }, this.options.duration/2);
     };
     this.close = function() {
-	  this.modal.dispatchEvent(new CustomEvent('hidden.bs.modal'));
+	  var cancelled = !this.modal.dispatchEvent(new CustomEvent('hidden.bs.modal', {cancelable: true}));
+	  if (cancelled) return;
   
       if ( this.overlay ) {
         removeClass(this.overlay,'in');

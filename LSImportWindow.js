@@ -21,184 +21,16 @@ class LSImportWindow extends ACController
 			this[localStorageVarName] = tablesString ? tablesString.split(',') : [];
 		});
 		
+		this.tablePresets = {};
+		var tablePresetsString = localStorage.getItem('LSImportWindowDefaults');
+		if (tablePresetsString) try {
+			var tablePresets = JSON.parse(tablePresetsString);
+			if (tablePresets) this.tablePresets = tablePresets;
+		} catch (e) {
+			localStorage.setItem('LSImportWindowDefaults', '');
+		}
+		
 		this.versionedMainTables = ['PRODUCT', 'ANALYSIS', 'T_PH_SAMPLE_PLAN'];
-		this.tablePresets = {
-			'UNITS': {
-				'REMOVED': 'F'
-			},
-			'LIST': {
-				'REMOVED': 'F',
-				'SORT': 'F'
-			},
-			'INSTRUMENTS': {
-				'REMOVED': 'F',
-				'PM_INTV': 0,
-				'CALIB_INTV': 0,
-				'LOW_THRESHOLD': 0,
-				'HIGH_THRESHOLD': 0,
-				'STABILITY_DELTA': 0,
-				'STABILITY_NUMBER': 0,
-				'NEEDS_CALIBRATION': 'F',
-				'NEEDS_PM': 'F',
-				'TIME_OUT': 0,
-				'POLLING_TIME': 0,
-				'HOLDS_SAMPLES': 'F',
-				'DISCARD_TIME': 0,
-				'SIZE_LIMIT': 0,
-				'INCLUDE_SUBDIRS': 'F',
-				'DEBUG': 'F',
-				'STORE_IN_DB_FILE': 'F',
-				'DB_FILE_PROMPT': 'F',
-				'USE_EXTERNAL_PM': 'F',
-				'USE_EXTERNAL_CALIB': 'F',
-				'T_CALIB_EXTENSION': 0,
-				'T_CALIB_INTV': 0,
-				'T_DISPLAY_OPERATOR': 'F',
-				'T_END_OF_DAY_EXPIRY': 'F',
-				'T_END_OF_MONTH_EXPIRY': 'F',
-				'T_EXT_CALIB_INTV': 0,
-				'T_PM_EXTENSION': 0,
-				'T_PM_INTV': 0,
-				'T_USE_NULL_CALIB_DATE': 'F',
-				'T_USE_NULL_PM_DATE': 'F'
-			},
-			'COMMON_NAME': {
-				'REMOVED': 'F'
-			},
-			'ANALYSIS_TYPES': {
-				'REMOVED': 'F'
-			},
-			'ANALYSIS': {
-				'REMOVED': 'F',
-				'ACTIVE': 'T',
-				'DESTRUCTIVE': 'T',
-				'STORE_INCMP_OPTS': 'T',
-				'T_AUTO_ADD_STAGE': 'F',
-				'T_NUM_STAGES': 0,
-				'CALC_ON_SAVE': 'T',
-				'SPLIT_REPLICATES': 'T',
-				'CROSS_SAMPLE': 'T',
-				'HIDE_ON_ORDER_FORM': 'T',
-				'TEST_SEQUENCE_NO': 0,
-				'ALLOW_MILL_ADHOCS': 'T',
-				'TRANSFER_USES_INST': 'T',
-				'EXPECTED_DATE': 0,
-				'COST_UNITS': 0,
-				'REQD_VOLUME': 0,
-				'AUTO_AUTHORIZE': 'T',
-				'AUTO_REJECT': 'T',
-				'DOUBLE_ENTRY': 'F'
-			},
-			'COMPONENT': {
-				'ALLOW_OUT': 'T',
-				'USES_CODES': 'F',
-				'HAS_ATTRIBUTES': 'F',
-				'VERSION_FILES': 'T',
-				'T_HIDE_CALC_ON_WORKSHEET': 'F',
-				'T_HIDE_ON_WORKSHEET': 'F',
-				'T_PH_AQL_REPS': 'F',
-				'SAP_REPLICATES': 0
-			},
-			'PRODUCT': {
-				'REMOVED': 'F',
-				'SIGNED': 'F',
-				'ACTIVE': 'T',
-				'APPROVED': 'F',
-				'READY_FOR_APPROVAL': 'F',
-				'APPROVAL_ID': 0,
-				'COST_FACTOR': 0,
-				'FULL_TEST_FREQ': 0,
-				'LOTS_TO_GO': 0,
-				'TEMPLATE': 'PRODUCT',
-				'GRADE_TEMPLATE': 'PRODUCT_GRADE',
-				'STAGE_TEMPLATE': 'PROD_GRADE_STAGE',
-				'NUMERIC_SPEC_TEMP': 'PRODUCT_SPEC_NUM',
-				'TEXT_SPEC_TEMP': 'PRODUCT_SPEC_TXT',
-				'FORMULA_SPEC_TEMP': 'PRODUCT_SPEC_FORM',
-				'SPC_SPEC_TEMP': 'PRODUCT_SPEC_SPC',
-				'REPORTED_SPEC_TEMP': 'PRODUCT_SPEC_RPT',
-				'T_PH_AUTO_OOX_INVEST': 'F'
-			},
-			'T_PH_GRADE': {
-				'REMOVED': 'F'
-			},
-			'PRODUCT_GRADE': {
-				'CONTINUE_CHECKING': 'T',
-				'ALWAYS_CHECK': 'F'
-			},
-			'T_PH_SPEC_TYPE': {
-				'REMOVED': 'F'
-			},
-			'T_PH_STAGE': {
-				'REMOVED': 'F'
-			},
-			'PROD_GRADE_STAGE': {
-				'PARTIAL': 'F',
-				'REQUIRED': 'T',
-				'T_PH_RECERT': 'F',
-				'T_PH_SAME_LOT': 'F',
-				'T_PH_STATUS1': 'F',
-				'T_PH_STATUS2': 'F',
-				'REQD_VOLUME': 0,
-				'AQL_CRITICAL': 0,
-				'AQL_MAJOR': 0,
-				'AQL_MINOR': 0,
-				'AQL': 0,
-				'AQL_UPPER': 0,
-				'AQL_LOWER': 0,
-				'T_NUM_STAGES': 0,
-				'T_AUTO_ADD_STAGE': 'F'
-			},
-			'PRODUCT_SPEC': {
-				'SHOW_CHART': 'F',
-				'PARTIAL': 'T',
-				'REQUIRED': 'T',
-				'SPECIFIC_ANALYSIS': 'T',
-				'VERSION': 1,
-				'ROUND': 'T',
-				'PLACES': 2,
-				'LSL': 0,
-				'USL': 0,
-				'NOMINAL_VALUE': 0,
-				'SUBGROUP_SIZE': 0,
-				'NUM_HISTORY_PTS': 0,
-				'T_PH_AQL_REPS': 'F',
-				'T_PH_COA_ORDER': 0
-			},
-			'T_PH_ITEM_CODE': {
-				'REMOVED': 'F',
-				'EXPIRY_INTERVAL': 0,
-				'RETEST_INTERVAL': 0,
-				'ACTIVE': 'T',
-				'FULL_TEST_FREQ': 0,
-				'LOTS_TO_GO': 0,
-				'APPLY_PLAN_AT_LOGIN': 'T',
-				'APPLY_SAME_LOT_CHECK': 'T'
-			},
-			'T_PH_ITEM_CODE_SPEC': {
-				'SPEC_CLASS': 'MP'
-			},
-			'T_PH_SAMPLE_PLAN': {
-				'REMOVED': 'F',
-				'ACTIVE': 'T',
-				'APPROVED': 'F',
-				'READY_FOR_APPROVAL': 'F',
-				'APPROVAL_ID': 0
-			},
-			'T_PH_SAMPLE_PLAN_EN': {
-				'ALGORITHM': 'SP_FIXED',
-				'LOG_SAMPLE': 'T',
-				'CREATE_INVENTORY': 'F',
-				'RETAINED_SAMPLE': 'F',
-				'STABILITY': 'F',
-				'INITIAL_STATUS': 'U',
-				'QUANTITY': 0,
-				'RECERT_QUANTITY': 0,
-				'REDUCED_QUANTITY': 0,
-				'NUMBER_CONT': 0,
-				'LABELS_PER_SAMPLE': 0
-			}
-		};
 		
 		var tb = new ACToolBar(this.grid.cell(0,0), { type: 'secondary' });
 		tb.classList.add('ls-toolbar');
@@ -209,6 +41,7 @@ class LSImportWindow extends ACController
 			{caption: 'Open Workbook', icon: 'open.png', action: this.browseForWorkbook.bind(this) },
 			{caption: 'Set Skip Tables', icon: 'reject.png', action: this.setTables.bind(this, 'LSImportWindowSkipTables') },
 			{caption: 'Set Do Only Tables', icon: 'select.png', action: this.setTables.bind(this, 'LSImportWindowDoOnlyTables') },
+			{caption: 'Set Defaults', icon: 'defaults.png', action: this.setDefaults.bind(this) },
 			{caption: 'Kill Queue', icon: 'kill.png', action: this.killQueue.bind(this) }
 		]);
 		
@@ -279,6 +112,51 @@ class LSImportWindow extends ACController
 		modal.addEventListener('close', handler);
 		textInput.addEventListener('enter', handler);
 		textInput.addEventListener('enter', e => modal.close());
+		
+		modal.display();
+	}
+	
+	setDefaults()
+	{
+		var modal = new ACDialog(document.body);
+		modal.setTitle('Set Defaults');
+		modal.contentCell.style.height = '400px';
+		
+		var errorCell = new ACStaticCell(modal.footerCell);
+		errorCell.style.color = 'red';
+		errorCell.textContent = '\u00a0';
+		modal.footerCell.style.padding = '6px 15px';
+		errorCell.style.textAlign = 'left';
+		
+		var editor = ace.edit(modal.contentCell);
+		editor.$blockScrolling = Infinity;
+		editor.setTheme("ace/theme/xcode");
+		editor.getSession().setMode("ace/mode/json");
+		editor.renderer.setShowGutter(false);
+		editor.setShowPrintMargin(false);
+		editor.setHighlightActiveLine(false);
+		editor.setFontSize(14);
+		editor.getSession().setUseSoftTabs(false);
+		editor.session.setValue(localStorage.getItem('LSImportWindowDefaults') || '', -1);
+		editor.focus();
+		editor.getSession().on('change', e => {
+			errorCell.textContent = '\u00a0';
+		});
+		
+		modal.addEventListener('close', evt => {
+			this.tablePresets = {};
+			var tablePresetsString = editor.getValue();
+			if (tablePresetsString) try {
+				var tablePresets = JSON.parse(tablePresetsString);
+				if (tablePresets) this.tablePresets = tablePresets;
+				localStorage.setItem('LSImportWindowDefaults', tablePresetsString);
+			} catch (e) {
+				evt.preventDefault();
+				errorCell.textContent = e.message;
+				editor.focus();
+			}
+			else localStorage.setItem('LSImportWindowDefaults', '');
+		});
 		
 		modal.display();
 	}
@@ -548,6 +426,7 @@ class LSImportWindow extends ACController
 						qCtrl.title += error;
 					});
 				});
+				this.generateBtn.disabled = true;
 			});
 			this.outputArea.scrollTop = this.outputArea.scrollHeight;
 		};
