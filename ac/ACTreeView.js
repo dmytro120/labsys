@@ -6,18 +6,62 @@ class ACTreeView extends ACControl
 	{
 		super(parentNode);
 		
+		this.tabIndex = -1;
 		this.style.display = 'block';
+		this.style.outline = 'none';
 		this.rootNodeList = new ACTreeViewNodeList(this, this);
 		
 		this.selectedNode = null;
-		this.addEventListener('keydown', e => {
-			console.log(e);
-		});
+		this.addEventListener('keydown', this.processKey.bind(this));
 	}
 	
 	add(caption, cssClass, action)
 	{
 		return this.rootNodeList.add(caption, cssClass, action);
+	}
+	
+	processKey(evt)
+	{
+		if (!this.selectedNode) return;
+		switch(evt.key) {
+			
+			case 'ArrowUp':
+				var sibling = this.selectedNode.previousSibling;
+				if (sibling) {
+					var checkNode = sibling;
+					while (!checkNode.classList.contains('closed')) {
+						checkNode = checkNode.lastChild.lastChild;
+					}
+					checkNode.select();
+				} else {
+					var parent = this.selectedNode.parentNode.parentNode;
+					if (parent.tagName == 'AC-TREEVIEWNODE') parent.select();
+				}
+			break;
+			
+			case 'ArrowDown':
+				if (!this.selectedNode.classList.contains('closed')) {
+					var targetNode = this.selectedNode.lastChild.firstChild;
+					targetNode.select();
+				} else {
+					var checkNode = this.selectedNode;
+					while (!checkNode.nextSibling) {
+						checkNode = checkNode.parentNode.parentNode;
+						if (checkNode.tagName != 'AC-TREEVIEWNODE') return;
+					}
+					checkNode.nextSibling.select();
+				}
+			break;
+			
+			case 'ArrowRight':
+				this.selectedNode.open();
+			break;
+			
+			case 'ArrowLeft':
+				this.selectedNode.close();
+			break;
+			
+		}
 	}
 }
 
@@ -78,7 +122,7 @@ class ACTreeViewNode extends ACControl
 	
 	setAction(action)
 	{
-		this.labelCtrl.addEventListener('click', action);
+		this.action = action;
 	}
 	
 	setHasChildren(hasChildren)
@@ -93,6 +137,17 @@ class ACTreeViewNode extends ACControl
 		if (this.parentElement.treeView.selectedNode) this.parentElement.treeView.selectedNode.classList.remove('vtree-selected');
 		this.classList.add('vtree-selected');
 		this.parentElement.treeView.selectedNode = this;
+		if (this.action) this.action();
+	}
+	
+	open()
+	{
+		if (this.classList.contains('closed') && this.hasChildren) this.classList.remove('closed');
+	}
+	
+	close()
+	{
+		if (!this.classList.contains('closed')) this.classList.add('closed');
 	}
 }
 
