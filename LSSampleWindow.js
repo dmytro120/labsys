@@ -122,7 +122,7 @@ class LSSampleWindow extends ACController
 			var sample = samples[0];
 			var sampleNode = this.tv.add(
 				sample.sample_number + '  ' + sample.text_id, 
-				'sample ' + sample.status, 
+				null,//'sample ' + sample.status, 
 				this.setObject.bind(this, 'sample', sample.sample_number)
 			);
 			DB.query("\
@@ -134,7 +134,7 @@ class LSSampleWindow extends ACController
 				tests.forEach(test => {
 					var testNode = sampleNode.add(
 						test.analysis + ' [' + test.reported_name + ']' + ' / ' + test.replicate_count, 
-						'test ' + test.status, 
+						null,//'test ' + test.status, 
 						this.setObject.bind(this, 'test', test.test_number)
 					);
 					DB.query("\
@@ -145,7 +145,7 @@ class LSSampleWindow extends ACController
 						results.forEach(result => {
 							testNode.add(
 								result.name + ' / ' + result.replicate_count, 
-								'result ' + result.status, 
+								null,//'result ' + result.status, 
 								this.setObject.bind(this, 'result', result.result_number)
 							);
 						});

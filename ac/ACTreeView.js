@@ -73,11 +73,11 @@ class ACTreeViewNodeList extends ACControl
 		this.treeView = treeView;
 	}
 	
-	add(caption, iconClass, action)
+	add(caption, icon, action)
 	{
 		var node = new ACTreeViewNode(this);
 		node.setCaption(caption);
-		if (iconClass) node.setIconClass(iconClass);
+		if (icon) node.setIcon(icon);
 		if (action) node.setAction(action);
 		node.classList.add('closed');
 		if (this.parentElement.setHasChildren) this.parentElement.setHasChildren(true);
@@ -115,9 +115,10 @@ class ACTreeViewNode extends ACControl
 		this.labelCtrl.textContent = caption;
 	}
 	
-	setIconClass(iconClass)
+	setIcon(icon)
 	{
-		this.labelCtrl.className = iconClass;
+		this.labelCtrl.classList.add('icon');
+		this.labelCtrl.style.backgroundImage = 'url(rsrc/16x16/' + icon + ')';
 	}
 	
 	setAction(action)

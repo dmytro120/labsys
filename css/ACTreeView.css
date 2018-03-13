@@ -61,6 +61,11 @@ ac-treeview a {
 	padding: 0 2px;
 }
 
+ac-treeview a.icon {
+	background-repeat: no-repeat;
+	padding-left: 20px;
+}
+
 ac-treeviewnode a:hover {
 	background-color: #e7f4f9;
 	outline: 1px solid #d8f0fa;
