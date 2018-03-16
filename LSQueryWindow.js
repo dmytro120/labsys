@@ -157,7 +157,7 @@ class LSQueryWindow extends ACController
 					for (var key in row) {
 						if (i == 0) {
 							var th = document.createElement('th');
-							var keyText = document.createTextNode(key);
+							var keyText = document.createTextNode(key == key.toLowerCase() ? key.toUpperCase() : key);
 							th.appendChild(keyText);
 							headerRow.appendChild(th);
 						}

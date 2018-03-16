@@ -56,6 +56,7 @@ class LSScriptWindow extends ACController
 		this.contentContainer = new ACStaticCell(this.itemGrid.cell(1,0));
 		this.contentContainer.style.height = '100%';
 		this.contentContainer.style.overflow = 'auto';
+		this.contentContainer.style.marginTop = '-3px';
 		
 		var vb = new ACToolBar(this.grid.cell(1,1));
 		vb.setStyle(ST_BORDER_TOP);
@@ -71,6 +72,7 @@ class LSScriptWindow extends ACController
 		this.rootNode.appendChild(this.grid);
 		this.readScripts();
 		if (this.contentContainerScrollTop) this.contentContainer.scrollTop = this.contentContainerScrollTop;
+		if ('onAttached' in this.contentContainer) this.contentContainer.onAttached.call(this.contentContainer);
 	}
 	
 	readScripts()
@@ -126,7 +128,11 @@ class LSScriptWindow extends ACController
 		this.scriptCtrl.session.setValue(item.value, -1);
 		this.scriptCtrl.setReadOnly(false);
 		this.scriptCtrl.renderer.$cursorLayer.element.style.display = "";
+		
 		this.contentContainer.clear();
+		if ('onAttached' in this.contentContainer) delete this.contentContainer.onAttached;
+		if ('onDetached' in this.contentContainer) delete this.contentContainer.onDetached;
+		
 		this.scriptCtrl.focus();
 	}
 	
@@ -273,6 +279,7 @@ class LSScriptWindow extends ACController
 	{
 		this.saveItem();
 		this.contentContainerScrollTop = this.contentContainer.scrollTop;
+		if ('onDetached' in this.contentContainer) this.contentContainer.onDetached.call(this.contentContainer);
 	}
 	
 	writeScripts()

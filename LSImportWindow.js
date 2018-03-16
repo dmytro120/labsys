@@ -441,7 +441,7 @@ class LSImportWindow extends ACController
 			var valueBit = !checkBit && checkBit !== 0 ? "NULL" : (
 				(fieldName == "CHANGED_ON" || 
 					(!isNaN(parseFloat(checkBit)) && isFinite(checkBit) && !textFields.includes(fieldName))
-				) ? checkBit : "'" + checkBit + "'"
+				) ? checkBit : "'" + checkBit.replace(/'/g, "''") + "'"
 			);
 			if (!checkBit && fieldName == "VERSION") valueBit = "1";
 			bits.push(!isInsert || isInsert == UPDATE_CLAUSE ? "[" + fieldName + "] = " + valueBit : valueBit);
