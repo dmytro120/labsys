@@ -134,8 +134,17 @@ class ACFlexGridSizer extends ACControl
 	resize(e)
 	{
 		if (!this.cellToResize || !e.clientX || !e.clientY) return;
-		if (this.type == AC_DIR_VERTICAL) this.cellToResize.style.width = (e.clientX + this.smallOffset - this.getOffset()) + 'px';
-		else this.cellToResize.style.height = (e.clientY + this.smallOffset - this.getOffset()) + 'px';
+		if (this.type == AC_DIR_VERTICAL) {
+			var targetWidth = e.clientX + this.smallOffset - this.getOffset();
+			var maxWidth = this.cellToResize.parentNode.parentNode.getBoundingClientRect().width;
+			if (targetWidth > maxWidth || targetWidth < 1) return;
+			this.cellToResize.style.width = targetWidth + 'px';
+		} else {
+			var targetHeight = e.clientY + this.smallOffset - this.getOffset();
+			var maxHeight = this.cellToResize.parentNode.parentNode.getBoundingClientRect().height;
+			if (targetHeight > maxHeight || targetHeight < 1) return;
+			this.cellToResize.style.height = targetHeight + 'px';
+		}
 	}
 }
 
