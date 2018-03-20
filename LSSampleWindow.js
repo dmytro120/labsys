@@ -13,8 +13,8 @@ class LSSampleWindow extends ACController
 		tb.setStyle(ST_BORDER_BOTTOM);
 		tb.style.borderBottomColor = '#17817b';
 		tb.setItems([
-			{caption: 'Exit', icon: 'quit.png', action: this.exit.bind(this) },
-			{caption: 'Open Sample', icon: 'open.png', action: this.promptForSample.bind(this) }
+			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) },
+			{caption: 'Open Sample', icon: 'open.png', tooltip: 'Open (⌘O)', action: this.promptForSample.bind(this) }
 		]);
 		
 		var grid = new ACFlexGrid(this.grid.cell(1,0), { rowHeights:['auto'], colWidths:['20%', 'auto'] });

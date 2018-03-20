@@ -31,7 +31,7 @@ class ACToolBar extends ACControl
 		var a = AC.create('a', li);
 		
 		if ('symbol' in data) a.classList.add('glyphicon', 'glyphicon-'+data.symbol);
-		if ('caption' in data) a.setAttribute('title', data.caption);
+		if ('tooltip' in data || 'caption' in data) a.setAttribute('title', data.tooltip || data.caption);
 		if ('caption' in data && !('symbol' in data)) a.textContent = data.caption;
 		if ('icon' in data && this.type) a.style.backgroundImage = 'url(rsrc/' + (this.type == 'primary' ? '32x32' : '16x16') + '/' + data.icon + ')';
 		if ('action' in data) a.action = data.action;

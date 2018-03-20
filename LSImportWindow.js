@@ -37,8 +37,8 @@ class LSImportWindow extends ACController
 		tb.setStyle(ST_BORDER_BOTTOM);
 		tb.style.borderBottomColor = '#17817b';
 		tb.setItems([
-			{caption: 'Exit', icon: 'quit.png', action: this.exit.bind(this) },
-			{caption: 'Open Workbook', icon: 'open.png', action: this.browseForWorkbook.bind(this) },
+			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) },
+			{caption: 'Open Workbook', icon: 'open.png', tooltip: 'Open (⌘O)', action: this.browseForWorkbook.bind(this) },
 			{caption: 'Set Skip Tables', icon: 'reject.png', action: this.setTables.bind(this, 'LSImportWindowSkipTables') },
 			{caption: 'Set Do Only Tables', icon: 'select.png', action: this.setTables.bind(this, 'LSImportWindowDoOnlyTables') },
 			{caption: 'Set Defaults', icon: 'defaults.png', action: this.setDefaults.bind(this) },
