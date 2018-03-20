@@ -6,7 +6,20 @@ class LSScriptWindow extends ACController
 	{
 		super(rootNode);
 		
-		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '40px'], colWidths:['20%', 'auto'] });
+		// Read Info
+		this.info = {};
+		var infoJSON = localStorage.getItem('LSScriptWindow');
+		try {
+			var info = JSON.parse(infoJSON);
+			if (info && info != null) this.info = info;
+		}
+		catch (e) {}
+		if (!('scripts' in this.info)) this.info.scripts = {};
+		if (!('scriptPaneWidth' in this.info)) this.info.scriptPaneWidth = '20%';
+		if (!('editorPaneHeight' in this.info)) this.info.editorPaneHeight = '50%';
+		
+		// Main Grid
+		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '40px'], colWidths:[this.info.scriptPaneWidth, 'auto'] });
 		this.grid.addSizer(0, AC_DIR_VERTICAL);
 		
 		// Left
@@ -57,7 +70,7 @@ class LSScriptWindow extends ACController
 		]);
 		this.tbr.firstChild.firstChild.style.display = 'none';
 		
-		this.itemGrid = new ACFlexGrid(this.grid.cell(1,1), { rowHeights:['50%', 'auto'], colWidths:['100%'] });
+		this.itemGrid = new ACFlexGrid(this.grid.cell(1,1), { rowHeights:[this.info.editorPaneHeight, 'auto'], colWidths:['100%'] });
 		this.itemGrid.addSizer(0, AC_DIR_HORIZONTAL);
 		
 		this.scriptCtrl = ace.edit(this.itemGrid.cell(0,0));
@@ -105,29 +118,19 @@ class LSScriptWindow extends ACController
 		var wasSameItemFound = false;
 		this.listBox.clear();
 		
-		var scripts = localStorage.getItem('LSScriptWindowScripts');
-		if (scripts) {
-			try {
-				var scripts = JSON.parse(scripts);
-			} catch(e) {
-				console.log('bad json ' + scripts);
-				return;
+		for (var name in this.info.scripts) {
+			var item = this.listBox.addItem(name, name);
+			item.value = this.info.scripts[name];
+			if (name == lastActiveItemID) {
+				item.classList.add('active');
+				this.listBox.activeItem = item;
+				wasSameItemFound = true;
 			}
+		}
 		
-			for (var name in scripts) {
-				var item = this.listBox.addItem(name, name);
-				item.value = scripts[name];
-				if (name == lastActiveItemID) {
-					item.classList.add('active');
-					this.listBox.activeItem = item;
-					wasSameItemFound = true;
-				}
-			}
-			
-			if (!wasSameItemFound) {
-				this.scriptCtrl.session.setValue('');
-				this.contentContainer.clear();
-			}
+		if (!wasSameItemFound) {
+			this.scriptCtrl.session.setValue('');
+			this.contentContainer.clear();
 		}
 	}
 	
@@ -138,6 +141,7 @@ class LSScriptWindow extends ACController
 			case 'open': this.openItem(); break;
 			case 'save': this.saveItem(); break;
 			case 'enter': this.runScript(); break;
+			case 'layout': this.resetLayout(); break;
 			case 'eof': this.exit(); break;
 		}
 	}
@@ -162,7 +166,7 @@ class LSScriptWindow extends ACController
 	{
 		var item = this.listBox.activeItem;
 		if (item) item.value = this.scriptCtrl.getValue();
-		this.writeScripts();
+		this.writeInfo();
 	}
 	
 	createItem()
@@ -242,8 +246,7 @@ class LSScriptWindow extends ACController
 			var newName = input.value;
 			
 			if (oldName != newName) {
-				var foundItem = this.listBox.getItemByName(newName);
-				if (foundItem) {
+				if (newName.length < 1 || this.listBox.getItemById(newName, true)) {
 					input.style.borderColor = 'red';
 					input.focus();
 					return;
@@ -306,15 +309,17 @@ class LSScriptWindow extends ACController
 		if ('onDetached' in this.contentContainer) this.contentContainer.onDetached.call(this.contentContainer);
 	}
 	
-	writeScripts()
+	writeInfo()
 	{
-		var scripts = {};
-		
+		this.info.scripts = {};
 		Array.from(this.listBox.children).forEach(item => {
-			scripts[item.dataset.id] = item.value;
+			this.info.scripts[item.dataset.id] = item.value;
 		});
 		
-		localStorage.setItem('LSScriptWindowScripts', JSON.stringify(scripts));
+		this.info.scriptPaneWidth = this.grid.cell(0,0).style.width;
+		this.info.editorPaneHeight = this.itemGrid.cell(0,0).style.height;
+		
+		localStorage.setItem('LSScriptWindow', JSON.stringify(this.info));
 	}
 	
 	exportScript()
@@ -328,7 +333,6 @@ class LSScriptWindow extends ACController
 		element.setAttribute('download', selectedItem.dataset.id + '.js');
 		
 		element.style.display = 'none';
-		this.rootNode.appendChild(element);
 		
 		element.click();
 		element.remove();
@@ -352,6 +356,12 @@ class LSScriptWindow extends ACController
 		a.classList.remove(hide ? 'glyphicon-arrow-up' : 'glyphicon-arrow-down');
 		a.classList.add(hide ? 'glyphicon-arrow-down' : 'glyphicon-arrow-up');
 		if (!hide) this.scriptCtrl.focus();
+	}
+	
+	resetLayout()
+	{
+		this.info.scriptPaneWidth = this.grid.cell(0,0).style.width = '20%';
+		this.info.editorPaneHeight = this.itemGrid.cell(0,0).style.height = '50%';
 	}
 	
 	exit()

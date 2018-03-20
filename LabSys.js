@@ -90,6 +90,7 @@ class LabSys
 				switch(evt.key) {
 					case 'Enter': this.onAppCommand.call(this, 'enter'); break;
 					case 'd': this.onAppCommand.call(this, 'eof'); break;
+					case 'l': this.onAppCommand.call(this, 'layout'); break;
 					case 'm': this.onAppCommand.call(this, 'move'); break;
 					case 'n': this.onAppCommand.call(this, 'new'); break;
 					case 'o': this.onAppCommand.call(this, 'open'); break;

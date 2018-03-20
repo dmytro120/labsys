@@ -72,14 +72,14 @@ class ACListBox extends ACControl
 		}
 	}
 	
-	getItemById(id)
+	getItemById(id, isExact)
 	{
-		return this.querySelector('button[data-id^="'+id+'"]');;
+		return this.querySelector('button[data-id' + (!isExact ? '^' : '') + '="'+id+'"]');;
 	}
 	
-	getItemByName(name)
+	getItemByName(name, isExact)
 	{
-		return this.querySelector('button[data-name^="'+name.toLowerCase()+'"]');
+		return this.querySelector('button[data-name' + (!isExact ? '^' : '') + '="'+name.toLowerCase()+'"]');
 	}
 	
 	getItemsByNameBeginningWith(nameStart)

@@ -167,7 +167,7 @@ ac-flexgrid .ace_scroller { /*border-bottom: 1px solid #ddd;*/ }
 ac-listbox.list-group { display: block; margin-bottom: 0px; height: 100%; border-color: #ddd; border-style: solid; border-width: 0px; }
 .list-group-item:first-child { border-radius: 0px; border-top: 0px; }
 .list-group-item:last-child { border-radius: 0px; border-bottom: 0px; }
-.list-group-item { border-right: 0px; border-left: 0px; padding-top: 9px; padding-bottom: 9px; }
+.list-group-item { border-right: 0px; border-left: 0px; padding-top: 9px; padding-bottom: 9px; cursor: default; }
 .list-group-item:focus { outline: none; }
 .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: rgb(248, 248, 248); color: inherit; border-color: inherit; }
 ac-listbox.indrag .list-group-item:active { background-color: inherit; }
