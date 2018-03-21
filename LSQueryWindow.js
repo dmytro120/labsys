@@ -120,85 +120,54 @@ class LSQueryWindow extends ACController
 		}
 		var query = queries[q];
 		if (!query) {
-			this.setResult();
+			this.resultContainer.clear();
 			return;
 		}
 		
+		this.resultContainer.clear();
 		this.runButton.disabled = this.xlsxButton.disabled = this.copyButton.disabled = true;
 		
 		// fix control jump issue
 		var cr = this.grid.cell(0,0).getBoundingClientRect();
 		this.grid.cell(0,0).style.minHeight = this.grid.cell(0,0).style.height = cr.height + 'px';
 		
-		DB.query(query, result => {
-			if ((result.length && result.length > 0) || Object.keys(result).length > 0) { 
-				var table = document.createElement('table');
-				table.classList.add('table', 'table-hover', 'table-condensed');
-				table.style.width = 'auto';
-				table.style.margin = '0 auto';
-				var tbody = document.createElement('tbody');
-				table.appendChild(tbody);
-			} else {
-				var table = document.createElement('div');
-				table.style.color = 'grey';
-				table.style.textAlign = 'center';
-				table.textContent = 'nothing found';
-				table.style.padding = '8px';
+		DB.query(query, (rows, info) => {
+			
+			if (!('colHeadings' in info) || !('numRows' in info)) return;
+			
+			if (info.colHeadings.length < 1) {
+				var infoCell = new ACStaticCell(this.resultContainer);
+				infoCell.style.textAlign = 'center';
+				infoCell.style.padding = '8px';
+				infoCell.textContent = info.numRows + ' rows impacted';
+				return;
 			}
 			
-			if (result instanceof Array) {
-				for (var i = 0; i < result.length; i++) {
-					var row = result[i];
-					if (i == 0) {
-						var headerRow = document.createElement('tr');
-						tbody.appendChild(headerRow);
-					}
-					var normalRow = document.createElement('tr');
-					for (var key in row) {
-						if (i == 0) {
-							var th = document.createElement('th');
-							var keyText = document.createTextNode(key == key.toLowerCase() ? key.toUpperCase() : key);
-							th.appendChild(keyText);
-							headerRow.appendChild(th);
-						}
-						var value = row[key];
-						if (value == null) value = "";
-						var td = document.createElement('td');
-						var valueText = document.createTextNode(value);
-						td.appendChild(valueText);
-						normalRow.appendChild(td);
-					}
-					tbody.appendChild(normalRow);
-				}
-			} else if (result instanceof Object) {
-				var headerRow = document.createElement('tr');
-				tbody.appendChild(headerRow);
-				var normalRow = document.createElement('tr');
-				tbody.appendChild(normalRow);
-				for (var key in result) {
-					var th = document.createElement('th');
-					var keyText = document.createTextNode(key);
-					th.appendChild(keyText);
-					headerRow.appendChild(th);
-					var value = result[key];
+			var table = AC.create('table', this.resultContainer);
+			table.classList.add('table', 'table-hover', 'table-condensed');
+			table.style.width = 'auto';
+			table.style.margin = '0 auto';
+			
+			var tbody = AC.create('tbody', table);
+			var tr = AC.create('tr', tbody);
+			info.colHeadings.forEach(heading => {
+				var th = AC.create('th', tr);
+				th.textContent = heading == heading.toLowerCase() ? heading.toUpperCase() : heading;
+			});
+			
+			rows.forEach(row => {
+				tr = AC.create('tr', tbody);
+				for (var key in row) {
+					var value = row[key];
 					if (value == null) value = "";
-					var td = document.createElement('td');
-					var valueText = document.createTextNode(value);
-					td.appendChild(valueText);
-					normalRow.appendChild(td);
+					var td = AC.create('td', tr);
+					td.textContent = value;
 				}
-			}
-			this.setResult(table);
+			});
+			
 		}, null, evt => {
 			this.runButton.disabled = this.xlsxButton.disabled = this.copyButton.disabled = false;
 		});
-	}
-	
-	setResult(node)
-	{
-		//this.resultsCtrl.value = result;
-		if (this.resultContainer.firstChild) this.resultContainer.firstChild.remove();
-		if (node) this.resultContainer.appendChild(node);
 	}
 	
 	prepareXLSX()
@@ -226,9 +195,9 @@ class LSQueryWindow extends ACController
 			var firstChr = wsName.charAt(0);
 			if (firstChr == '-') wsName = wsName.substring(1);
 			this.labels[q] = wsName.length > 0 ? wsName : 'Q'+q;
-			DB.query(query, function(dataset, metaData, q) {
+			DB.query(query, function(dataset, info, q) {
 				datasets[q] = dataset;
-				colInfo[q] = metaData;
+				colInfo[q] = 'colHeadings' in info ? info.colHeadings : [];
 			}, function(error, q) {
 				datasets[q] = [
 					{

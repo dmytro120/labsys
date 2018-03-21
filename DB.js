@@ -27,16 +27,15 @@ class DB
 			return;
 		}
 		try {
-			var rows = JSON.parse(xhr.responseText);
+			var response = JSON.parse(xhr.responseText);
 		} catch (e) {
 			if (failFn) failFn.call(this, xhr.responseText, id);
 			else alert(xhr.responseText);
 			if (thenFn) thenFn.call(this, id);
 			return;
 		}
-		if (rows && okFn) {
-			if ('rows' in rows) okFn.call(this, rows.rows, rows.metaData, id); // DDBC
-			else okFn.call(this, rows, rows.length > 0 ? Object.keys(rows[0]) : [], id); // LDBC
+		if (response && okFn) {
+			if ('rows' in response && 'info' in response) okFn.call(this, response.rows, response.info, id);
 			if (thenFn) thenFn.call(this, id);
 		}
 	}
