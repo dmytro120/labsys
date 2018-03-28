@@ -309,6 +309,7 @@ class LSTableManager extends ACController
 						case 'List':
 							if (schemaRows[s].list_key) {
 								var control = new ACListInput(field);
+								control.firstChild.style.maxWidth = '199px';
 								control.name = schemaRows[s].field_name;
 								DB.query("\
 									SELECT name, value \

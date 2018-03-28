@@ -3,32 +3,38 @@
 const INSERT_CLAUSE = 1;
 const UPDATE_CLAUSE = 2;
 
+const ORACLE = 1;
+const MSSQL = 2;
+
 class LSImportWindow extends ACController
 {
 	constructor(rootNode)
 	{
 		super(rootNode);
 		
+		// Read Info
+		this.info = {};
+		var infoJSON = localStorage.getItem('LSImportWindow');
+		try {
+			var info = JSON.parse(infoJSON);
+			if (info && info != null) this.info = info;
+		}
+		catch (e) {}
+		
+		// Set Quotes
+		if (!('dbType' in this.info) || ![ORACLE, MSSQL].includes(this.info.dbType)) this.info.dbType = ORACLE;
+		this.setQuotes();
+		
+		// Table Presets & Defaults
+		if (!('skipTables' in this.info) || !Array.isArray(this.info.skipTables)) this.info.skipTables = [];
+		if (!('doOnlyTables' in this.info) || !Array.isArray(this.info.doOnlyTables)) this.info.doOnlyTables = [];
+		if (!('tableDefaults' in this.info)) this.info.tableDefaults = {};
+		
 		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '40px'], colWidths:['100%'] });
 		
 		this.outputArea = new ACStaticCell(this.grid.cell(1,0));
 		this.outputArea.style.width = this.outputArea.style.height = '100%';
 		this.outputArea.style.overflow = 'auto';
-		
-		['LSImportWindowSkipTables', 'LSImportWindowDoOnlyTables'].forEach(localStorageVarName => {
-			var tablesString = localStorage.getItem(localStorageVarName);
-			if (tablesString) tablesString = tablesString.replace(/\s/g, '');
-			this[localStorageVarName] = tablesString ? tablesString.split(',') : [];
-		});
-		
-		this.tablePresets = {};
-		var tablePresetsString = localStorage.getItem('LSImportWindowDefaults');
-		if (tablePresetsString) try {
-			var tablePresets = JSON.parse(tablePresetsString);
-			if (tablePresets) this.tablePresets = tablePresets;
-		} catch (e) {
-			localStorage.setItem('LSImportWindowDefaults', '');
-		}
 		
 		this.versionedMainTables = ['PRODUCT', 'ANALYSIS', 'T_PH_SAMPLE_PLAN'];
 		
@@ -39,8 +45,9 @@ class LSImportWindow extends ACController
 		tb.setItems([
 			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) },
 			{caption: 'Open Workbook', icon: 'open.png', tooltip: 'Open (⌘O)', action: this.browseForWorkbook.bind(this) },
-			{caption: 'Set Skip Tables', icon: 'reject.png', action: this.setTables.bind(this, 'LSImportWindowSkipTables') },
-			{caption: 'Set Do Only Tables', icon: 'select.png', action: this.setTables.bind(this, 'LSImportWindowDoOnlyTables') },
+			{caption: 'Set DB Type', icon: 'db.png', action: this.setDBType.bind(this) },
+			{caption: 'Set Skip Tables', icon: 'reject.png', action: this.setTables.bind(this, 'skipTables') },
+			{caption: 'Set Do Only Tables', icon: 'select.png', action: this.setTables.bind(this, 'doOnlyTables') },
 			{caption: 'Set Defaults', icon: 'defaults.png', action: this.setDefaults.bind(this) },
 			{caption: 'Kill Queue', icon: 'kill.png', action: this.killQueue.bind(this) }
 		]);
@@ -79,6 +86,12 @@ class LSImportWindow extends ACController
 	onDetached()
 	{
 		this.contentContainerScrollTop = this.outputArea.scrollTop;
+		this.writeInfo();
+	}
+	
+	writeInfo()
+	{
+		localStorage.setItem('LSImportWindow', JSON.stringify(this.info));
 	}
 	
 	onAppCommand(command)
@@ -94,23 +107,57 @@ class LSImportWindow extends ACController
 		this.dispatchEvent('quit');
 	}
 	
-	setTables(localStorageVarName)
+	setDBType()
 	{
 		var modal = new ACDialog(document.body);
-		modal.setTitle(localStorageVarName);
+		modal.setTitle('DB Type');
+		
+		var textInput = new ACListInput(modal.contentCell);
+		var dbTypes = {
+			'ORACLE': ORACLE,
+			'MSSQL': MSSQL
+		};
+		for (var name in dbTypes) {
+			var o = textInput.addOption(name, dbTypes[name]);
+			if (dbTypes[name] == this.info.dbType) o.selected = true;
+		}
+		textInput.focus();
+		
+		var handler = e => {
+			this.info.dbType = parseInt(textInput.value);
+			this.setQuotes();
+		};
+		
+		modal.addEventListener('close', handler);
+		textInput.addEventListener('enter', e => modal.close());
+		
+		modal.display();
+	}
+	
+	setQuotes()
+	{
+		this.quot = {
+			L: this.info.dbType == ORACLE ? '"' : '[',
+			R: this.info.dbType == ORACLE ? '"' : ']'
+		};
+	}
+	
+	setTables(infoKey)
+	{
+		var modal = new ACDialog(document.body);
+		modal.setTitle(infoKey);
 		
 		var textInput = new ACTextInput(modal.contentCell);
-		textInput.value = localStorage.getItem(localStorageVarName);
+		textInput.value = this.info[infoKey].join(', ');
 		textInput.focus();
 		
 		var handler = e => {
 			var tablesString = textInput.value.replace(/\s/g, '');
-			localStorage.setItem(localStorageVarName, tablesString);
-			this[localStorageVarName] = tablesString ? tablesString.split(',') : [];
+			this.info[infoKey] = tablesString ? tablesString.split(',') : [];
+			this.writeInfo();
 		};
 		
 		modal.addEventListener('close', handler);
-		textInput.addEventListener('enter', handler);
 		textInput.addEventListener('enter', e => modal.close());
 		
 		modal.display();
@@ -119,7 +166,7 @@ class LSImportWindow extends ACController
 	setDefaults()
 	{
 		var modal = new ACDialog(document.body);
-		modal.setTitle('Set Defaults');
+		modal.setTitle('Defaults');
 		modal.contentCell.style.height = '400px';
 		
 		var errorCell = new ACStaticCell(modal.footerCell);
@@ -137,25 +184,28 @@ class LSImportWindow extends ACController
 		editor.setHighlightActiveLine(false);
 		editor.setFontSize(14);
 		editor.getSession().setUseSoftTabs(false);
-		editor.session.setValue(localStorage.getItem('LSImportWindowDefaults') || '', -1);
+		editor.session.setValue(
+			Object.keys(this.info.tableDefaults).length > 0 ? 
+			JSON.stringify(this.info.tableDefaults, null, '\t') : 
+			''
+		);
 		editor.focus();
 		editor.getSession().on('change', e => {
 			errorCell.textContent = '\u00a0';
 		});
 		
 		modal.addEventListener('close', evt => {
-			this.tablePresets = {};
 			var tablePresetsString = editor.getValue();
 			if (tablePresetsString) try {
 				var tablePresets = JSON.parse(tablePresetsString);
-				if (tablePresets) this.tablePresets = tablePresets;
-				localStorage.setItem('LSImportWindowDefaults', tablePresetsString);
+				if (tablePresets) this.info.tableDefaults = tablePresets;
+				this.writeInfo();
 			} catch (e) {
 				evt.preventDefault();
 				errorCell.textContent = e.message;
 				editor.focus();
 			}
-			else localStorage.setItem('LSImportWindowDefaults', '');
+			else this.info.tableDefaults = {};
 		});
 		
 		modal.display();
@@ -249,15 +299,15 @@ class LSImportWindow extends ACController
 			
 			// Do Only?
 			if (
-				this.LSImportWindowDoOnlyTables.length > 0 && 
-				!this.LSImportWindowDoOnlyTables.includes(tableName)
+				this.info.doOnlyTables.length > 0 && 
+				!this.info.doOnlyTables.includes(tableName)
 			)
 			return;
 			
 			// Skip?
 			if (
-				this.LSImportWindowSkipTables.includes(tableName) && 
-				(this.LSImportWindowDoOnlyTables.length < 1 || !this.LSImportWindowDoOnlyTables.includes(tableName))
+				this.info.skipTables.includes(tableName) && 
+				(this.info.doOnlyTables.length < 1 || !this.info.doOnlyTables.includes(tableName))
 			)
 			return;
 			
@@ -328,10 +378,10 @@ class LSImportWindow extends ACController
 				}
 				
 				// WHERE clause
-				var whereClauseBody = LSImportWindow.clauseBody(keyFields, entry);
+				var whereClauseBody = LSImportWindow.clauseBody(keyFields, entry, null, this.quot);
 				selectQueryCount++;
 				
-				DB.query("SELECT [" + this.tableKeys[tableName].join('], [') + "] FROM " + tableName + " WHERE " + whereClauseBody, rows => {
+				DB.query("SELECT " + this.quot.L + this.tableKeys[tableName].join(this.quot.R + ', ' + this.quot.L) + this.quot.R + " FROM " + tableName + " WHERE " + whereClauseBody, rows => {
 					
 					htmlTable.style.display = 'table';
 					var changed = false;
@@ -372,7 +422,7 @@ class LSImportWindow extends ACController
 					if (oldRecord) {
 						textCtrl.textContent = "UPDATE";
 						var fieldsToUpdate = Object.keys(entry).filter(k => !keyFields.includes(k));
-						var updateClauseBody = LSImportWindow.clauseBody(fieldsToUpdate, entry, UPDATE_CLAUSE);
+						var updateClauseBody = LSImportWindow.clauseBody(fieldsToUpdate, entry, UPDATE_CLAUSE, this.quot);
 						var query = "UPDATE " + tableName + "\r\nSET " + updateClauseBody + "\r\nWHERE " + whereClauseBody;
 						checkCtrl.title = query;
 					} else {
@@ -380,13 +430,13 @@ class LSImportWindow extends ACController
 						textCtrl.textContent = "INSERT";
 						var fieldsToInsert = Object.keys(entry);
 						if (keyFields.includes('VERSION') && !fieldsToInsert.includes('VERSION')) fieldsToInsert.push('VERSION');
-						if (tableName in this.tablePresets) for (var defaultValueKey in this.tablePresets[tableName]) {
+						if (tableName in this.info.tableDefaults) for (var defaultValueKey in this.info.tableDefaults[tableName]) {
 							if (defaultValueKey in entry) continue;
-							var defaultValue = this.tablePresets[tableName][defaultValueKey];
+							var defaultValue = this.info.tableDefaults[tableName][defaultValueKey];
 							fieldsToInsert.push(defaultValueKey);
 							entry[defaultValueKey] = defaultValue;
 						}
-						var insertClauseBody = LSImportWindow.clauseBody(fieldsToInsert, entry, INSERT_CLAUSE);
+						var insertClauseBody = LSImportWindow.clauseBody(fieldsToInsert, entry, INSERT_CLAUSE, this.quot);
 						var query = "INSERT INTO " + tableName + insertClauseBody;
 						if (this.versionedMainTables.includes(tableName) && entry.NAME) 
 							query += ";\r\nINSERT INTO versions (table_name, name, version) VALUES('"+ tableName +"', '"+ entry.NAME +"', 1)";
@@ -432,7 +482,7 @@ class LSImportWindow extends ACController
 		};
 	}
 	
-	static clauseBody(fieldNames, entry, isInsert)
+	static clauseBody(fieldNames, entry, isInsert, quot)
 	{
 		var textFields = ['NAME', 'ALIAS_NAME', 'PRODUCT', 'GRADE', 'T_PH_ITEM_CODE', 'T_PH_SAMPLE_PLAN'];
 		var bits = [];
@@ -444,11 +494,11 @@ class LSImportWindow extends ACController
 				) ? checkBit : "'" + checkBit.replace(/'/g, "''") + "'"
 			);
 			if (!checkBit && fieldName == "VERSION") valueBit = "1";
-			bits.push(!isInsert || isInsert == UPDATE_CLAUSE ? "[" + fieldName + "] = " + valueBit : valueBit);
+			bits.push(!isInsert || isInsert == UPDATE_CLAUSE ? quot.L + fieldName + quot.R + " = " + valueBit : valueBit);
 		});
 		return !isInsert ? 
 			bits.join(" AND "): (
-				isInsert == INSERT_CLAUSE ? "([" + fieldNames.join("], [") + "])\r\nVALUES (" + bits.join(", ") + ")":
+				isInsert == INSERT_CLAUSE ? "(" + quot.L + fieldNames.join(quot.R + ", " + quot.L) + quot.R + ")\r\nVALUES (" + bits.join(", ") + ")":
 				bits.join(", ")
 			);
 	}

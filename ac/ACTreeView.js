@@ -33,16 +33,22 @@ class ACTreeView extends ACControl
 						checkNode = checkNode.lastChild.lastChild;
 					}
 					checkNode.select();
+					//checkNode.scrollIntoView();
 				} else {
 					var parent = this.selectedNode.parentNode.parentNode;
-					if (parent.tagName == 'AC-TREEVIEWNODE') parent.select();
+					if (parent.tagName == 'AC-TREEVIEWNODE') {
+						parent.select();
+						//parent.scrollIntoView();
+					}
 				}
+				evt.preventDefault();
 			break;
 			
 			case 'ArrowDown':
 				if (!this.selectedNode.classList.contains('closed')) {
 					var targetNode = this.selectedNode.lastChild.firstChild;
 					targetNode.select();
+					//targetNode.scrollIntoView();
 				} else {
 					var checkNode = this.selectedNode;
 					while (!checkNode.nextSibling) {
@@ -50,18 +56,27 @@ class ACTreeView extends ACControl
 						if (checkNode.tagName != 'AC-TREEVIEWNODE') return;
 					}
 					checkNode.nextSibling.select();
+					//checkNode.nextSibling.scrollIntoView();
 				}
+				evt.preventDefault();
 			break;
 			
 			case 'ArrowRight':
 				this.selectedNode.open();
+				evt.preventDefault();
 			break;
 			
 			case 'ArrowLeft':
 				this.selectedNode.close();
+				evt.preventDefault();
 			break;
 			
 		}
+	}
+	
+	clear()
+	{
+		this.rootNodeList.clear();
 	}
 }
 

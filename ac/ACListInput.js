@@ -11,7 +11,6 @@ class ACListInput extends ACInput
 		this.style.display = 'block';
 		this.inputBox.style.paddingLeft = '0';
 		this.inputBox.style.paddingRight = '0';
-		this.inputBox.style.maxWidth = '199px';
 		
 		this.inputBox.onkeypress = evt => {
 			if (evt.keyCode == 13) {
