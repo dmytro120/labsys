@@ -73,20 +73,20 @@ class LSScriptWindow extends ACController
 		this.itemGrid = new ACFlexGrid(this.grid.cell(1,1), { rowHeights:[this.info.editorPaneHeight, 'auto'], colWidths:['100%'] });
 		this.itemGrid.addSizer(0, AC_DIR_HORIZONTAL);
 		
-		this.scriptCtrl = ace.edit(this.itemGrid.cell(0,0));
-		this.scriptCtrl.$blockScrolling = Infinity;
-		this.scriptCtrl.setTheme("ace/theme/xcode");
-		this.scriptCtrl.getSession().setMode("ace/mode/javascript");
-		this.scriptCtrl.renderer.setShowGutter(false);
-		this.scriptCtrl.setShowPrintMargin(false);
-		this.scriptCtrl.setHighlightActiveLine(false);
-		this.scriptCtrl.setFontSize(14);
-		this.scriptCtrl.getSession().setUseSoftTabs(false);
-		this.scriptCtrl.setReadOnly(true);
-		this.scriptCtrl.renderer.$cursorLayer.element.style.display = 'none';
+		this.editor = ace.edit(this.itemGrid.cell(0,0));
+		this.editor.$blockScrolling = Infinity;
+		this.editor.setTheme("ace/theme/xcode");
+		this.editor.getSession().setMode("ace/mode/javascript");
+		this.editor.renderer.setShowGutter(false);
+		this.editor.setShowPrintMargin(false);
+		this.editor.setHighlightActiveLine(false);
+		this.editor.setFontSize(14);
+		this.editor.getSession().setUseSoftTabs(false);
+		this.editor.setReadOnly(true);
+		this.editor.renderer.$cursorLayer.element.style.display = 'none';
 		this.itemGrid.cell(0,0).style.borderBottom = '1px solid #ddd';
 		this.itemGrid.addEventListener('layoutChanged', e => {
-			this.scriptCtrl.resize(true);
+			this.editor.resize(true);
 		});
 		
 		this.contentContainer = new ACStaticCell(this.itemGrid.cell(1,0));
@@ -121,7 +121,7 @@ class LSScriptWindow extends ACController
 		}
 		
 		if (!wasSameItemFound) {
-			this.scriptCtrl.session.setValue('');
+			this.editor.session.setValue('');
 			this.contentContainer.clear();
 		}
 	}
@@ -149,23 +149,23 @@ class LSScriptWindow extends ACController
 	selectItem(evt)
 	{
 		var lastItem = evt.detail.lastItem;
-		if (lastItem) lastItem.value = this.scriptCtrl.getValue();
+		if (lastItem) lastItem.value = this.editor.getValue();
 		var item = evt.detail.item;
-		this.scriptCtrl.session.setValue(item.value, -1);
-		this.scriptCtrl.setReadOnly(false);
-		this.scriptCtrl.renderer.$cursorLayer.element.style.display = "";
+		this.editor.session.setValue(item.value, -1);
+		this.editor.setReadOnly(false);
+		this.editor.renderer.$cursorLayer.element.style.display = "";
 		
 		this.contentContainer.clear();
 		if ('onAttached' in this.contentContainer) delete this.contentContainer.onAttached;
 		if ('onDetached' in this.contentContainer) delete this.contentContainer.onDetached;
 		
-		this.scriptCtrl.focus();
+		this.editor.focus();
 	}
 	
 	saveItem()
 	{
 		var item = this.listBox.activeItem;
-		if (item) item.value = this.scriptCtrl.getValue();
+		if (item) item.value = this.editor.getValue();
 		this.writeInfo();
 	}
 	
@@ -235,9 +235,9 @@ class LSScriptWindow extends ACController
 		var selectedItem = this.listBox.getSelectedItem();
 		if (selectedItem && confirm('Script ' + selectedItem.dataset.id + ' will be removed.')) {
 			selectedItem.remove();
-			this.scriptCtrl.session.setValue('', -1);
-			this.scriptCtrl.setReadOnly(true);
-			this.scriptCtrl.renderer.$cursorLayer.element.style.display = 'none';
+			this.editor.session.setValue('', -1);
+			this.editor.setReadOnly(true);
+			this.editor.renderer.$cursorLayer.element.style.display = 'none';
 			this.contentContainer.clear();
 		}
 	}
@@ -246,7 +246,7 @@ class LSScriptWindow extends ACController
 	{
 		this.saveItem();
 		this.contentContainer.clear();
-		var script = this.scriptCtrl.getValue();
+		var script = this.editor.getValue();
 		var lsListBox = this.listBox;
 		try {
 			(function() {
@@ -291,7 +291,7 @@ class LSScriptWindow extends ACController
 	exportScript()
 	{
 		var selectedItem = this.listBox.getSelectedItem();
-		var contents = this.scriptCtrl.getValue();
+		var contents = this.editor.getValue();
 		if (!contents || !selectedItem) return;
 		
 		var element = AC.create('a', this.rootNode);
@@ -321,7 +321,7 @@ class LSScriptWindow extends ACController
 		this.itemGrid.cell(0,0).parentElement.style.display = hide ? 'none' : 'table-row';
 		a.classList.remove(hide ? 'glyphicon-arrow-up' : 'glyphicon-arrow-down');
 		a.classList.add(hide ? 'glyphicon-arrow-down' : 'glyphicon-arrow-up');
-		if (!hide) this.scriptCtrl.focus();
+		if (!hide) this.editor.focus();
 	}
 	
 	resetLayout()

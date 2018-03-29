@@ -579,7 +579,7 @@ ac-menubar .navbar-nav > li > a { padding-top: 2px; padding-bottom: 2px; padding
 	margin-right: 4px;
 	font-size: smaller;
 }
-.navbar.secondary .navbar-nav > li > a:hover { background-color: #e7e7e7; }
+.navbar.secondary .navbar-nav > li:not(.disabled) > a:hover { background-color: #e7e7e7; }
 
 /* LabSys Mode Bar */
 .ls-modebar { background-color: rgb(0, 149, 143); color: white; border-bottom-color: #17817b; }
@@ -600,7 +600,8 @@ ac-menubar .navbar-nav > li > a { padding-top: 2px; padding-bottom: 2px; padding
 .ls-modebar .caption:hover { color: #f6f6f6; }
 
 /* LabSys Tool Bar */
-.ls-toolbar.secondary .navbar-nav > li > a:hover { background-color: rgb(156, 214, 211); }
+.ls-toolbar.secondary .navbar-nav > li:not(.disabled) > a:hover { background-color: rgb(156, 214, 211); }
+.ls-toolbar.secondary .navbar-nav > li.disabled > a { opacity: 0.5; cursor: default; color: black; }
 .ls-toolbar { background-color: rgb(176, 234, 231); color: black; } /* colorchange begins here */
 .ls-toolbar .navbar-brand { color: black; }
 .ls-toolbar .navbar-nav > li > a { color: black; }

@@ -94,6 +94,8 @@ class ACToolBar extends ACControl
 	_onItemSelected(evt)
 	{
 		var a = evt.target.tagName == 'A' ? evt.target : evt.target.parentElement;
+		var li = a.parentElement;
+		if (li.classList.contains('disabled')) return;
 		if (!this.isRadioCtrl) {
 			if (a.action) a.action();
 		} else {

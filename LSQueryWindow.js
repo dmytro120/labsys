@@ -6,24 +6,97 @@ class LSQueryWindow extends ACController
 	{
 		super(rootNode);
 		
-		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['auto', '39px', 'auto'], colWidths:['100%'] });
+		// Read Info
+		this.info = {};
+		var infoJSON = localStorage.getItem('LSQueryWindow');
+		try {
+			var info = JSON.parse(infoJSON);
+			if (info && info != null) this.info = info;
+		}
+		catch (e) {}
+		if (!('pages' in this.info)) this.info.pages = {};
+		if (Object.keys(this.info.pages) < 1) this.info.pages.default = '';
+		if (!('listWidth' in this.info)) this.info.listWidth = '16%';
 		
-		var sizer = this.grid.addSizer(0, AC_DIR_HORIZONTAL);
-		sizer.style.height = '100%';
-		sizer.style.marginTop = '0';
-		sizer.style.paddingTop = '4px';
+		// Main Grid
+		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '40px'], colWidths:[this.info.listWidth, 'auto'] });
+		this.grid.addSizer(0, AC_DIR_VERTICAL);
 		
-		var topCell = this.grid.cell(0,0);
-		this.queryCtrl = ace.edit(topCell);
-		this.queryCtrl.$blockScrolling = Infinity;
-		this.queryCtrl.setTheme("ace/theme/xcode");
-		this.queryCtrl.getSession().setMode("ace/mode/sql");
-		this.queryCtrl.renderer.setShowGutter(false);
-		this.queryCtrl.setShowPrintMargin(false);
-		this.queryCtrl.setHighlightActiveLine(false);
-		this.queryCtrl.setFontSize(14);
-		this.queryCtrl.getSession().setUseSoftTabs(false);
-		this.queryCtrl.onPaste = (e,t) => {
+		// Left
+		var modeToolBar = new ACToolBar(this.grid.cell(0,0), { type: 'secondary' });
+		modeToolBar.classList.add('ls-toolbar');
+		modeToolBar.setStyle(ST_BORDER_BOTTOM | ST_BORDER_RIGHT);
+		modeToolBar.style.borderColor = '#17817b';
+		modeToolBar.setItems([
+			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) },
+			{caption: 'Create', icon: 'add.png', tooltip: 'Create (⌘N)', action: this.createItem.bind(this) },
+			//{caption: 'Open', icon: 'open.png', tooltip: 'Open (⌘O)', action: this.openItem.bind(this) },
+			{caption: 'Rename', icon: 'rename.png', action: this.renameItem.bind(this) }
+		]);
+		
+		var listContainer = new ACStaticCell(this.grid.cell(1,0));
+		listContainer.style.height = '100%';
+		listContainer.style.overflow = 'auto';
+		this.grid.cell(1,0).style.borderRight = '1px solid #ddd';
+		this.grid.cell(1,0).style.verticalAlign = 'top';
+		this.lcScrollTop = null;
+		listContainer.onscroll = function(evt) { this.lcScrollTop = listContainer.scrollTop }.bind(this);
+
+		this.listBox = new ACListBox(listContainer);
+		this.listBox.classList.add('scriptlist');
+		this.listBox.setRearrangeable(true);
+		this.listBox.addEventListener('itemSelected', this.selectItem.bind(this));
+		
+		var modeActionBar = new ACToolBar(this.grid.cell(2,0));
+		modeActionBar.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
+		/*modeActionBar.setItems([
+			{symbol:'plus', caption:'New Entry', action:this.createItem.bind(this)},
+			{symbol:'folder-open', caption:'Open Entry', action:this.openItem.bind(this)},
+			{symbol:'step-backward', caption:'Previous Record', action:this.recPrevious.bind(this)},
+			{symbol:'step-forward', caption:'Next Record', action:this.recNext.bind(this)},
+			{symbol:'pencil', caption:'Rename', action:this.renameItem.bind(this)}
+		]);*/
+		
+		// Right
+		this.itemToolBar = new ACToolBar(this.grid.cell(0,1), { type: 'secondary' });
+		this.itemToolBar.classList.add('ls-toolbar');
+		this.itemToolBar.setStyle(ST_BORDER_BOTTOM);
+		this.itemToolBar.style.borderBottomColor = '#17817b';
+		/*this.itemToolBar.setItems([
+			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) }
+		]);*/
+		this.runButton = this.itemToolBar.addItem(
+			{caption: 'Run Current', icon: 'play.png', tooltip: 'Run (⌘↵)', action: this.runQuery.bind(this) }
+		);
+		var caption = 'Run All to XLSX';
+		this.xlsxButton = this.itemToolBar.addItem(
+			{caption: caption, icon: 'xlsx.png', dataset: { caption: caption }, action: this.prepareXLSX.bind(this) }
+		);
+		this.copyButton = this.itemToolBar.addItem(
+			{caption: 'Copy Table to Clipboard', icon: 'copy.png', action: this.copyResults.bind(this) }
+		);
+		this.itemToolBar.addItem(
+			{caption: 'Export Queries', icon: 'export.png', action: this.exportPage.bind(this) }
+		);
+		this.itemToolBar.addItem(
+			{caption: 'Remove', icon: 'bin.png', action: this.removeItem.bind(this) }
+		);
+		//this.itemToolBar.firstChild.firstChild.style.display = 'none';
+		
+		this.itemGrid = new ACFlexGrid(this.grid.cell(1,1), { rowHeights:['50%', 'auto'], colWidths:['100%'] });
+		this.itemGrid.addSizer(0, AC_DIR_HORIZONTAL);
+		
+		var topCell = this.itemGrid.cell(0,0);
+		this.editor = ace.edit(topCell);
+		this.editor.$blockScrolling = Infinity;
+		this.editor.setTheme("ace/theme/xcode");
+		this.editor.getSession().setMode("ace/mode/sql");
+		this.editor.renderer.setShowGutter(false);
+		this.editor.setShowPrintMargin(false);
+		this.editor.setHighlightActiveLine(false);
+		this.editor.setFontSize(14);
+		this.editor.getSession().setUseSoftTabs(false);
+		this.editor.onPaste = (e,t) => {
 			if (t.clipboardData.types.length == 4) {
 				// Dareth Excel format detected
 				var entries = LSQueryWindowTools.arrayFromCSV(e);
@@ -35,83 +108,181 @@ class LSQueryWindow extends ACController
 				e = e.trim();
 			}
 			var n={text:e,event:t};
-			this.queryCtrl.commands.exec("paste",this.queryCtrl,n);
+			this.editor.commands.exec("paste",this.editor,n);
 		}
-		//this.queryCtrl.style.borderBottom = '1px solid #ddd';
-		this.grid.addEventListener('layoutChanged', e => {
-			this.queryCtrl.resize(true);
+		//this.editor.style.borderBottom = '1px solid #ddd';
+		this.itemGrid.addEventListener('layoutChanged', e => {
+			this.editor.resize(true);
 		});
-		var preText = localStorage.getItem("LSQueryWindowText");
-		if (preText) this.queryCtrl.setValue(preText, -1);
-		this.queryCtrl.on("input", evt => {
-			localStorage.setItem("LSQueryWindowText", this.queryCtrl.getValue());
-		});
+		/*var preText = localStorage.getItem("LSQueryWindowText");
+		if (preText) this.editor.setValue(preText, -1);
+		this.editor.on("input", evt => {
+			localStorage.setItem("LSQueryWindowText", this.editor.getValue());
+		});*/
+		this.editor.setReadOnly(true);
+		this.editor.renderer.$cursorLayer.element.style.display = 'none';
 		
-		var middleCell = this.grid.cell(1,0);
-		middleCell.style.verticalAlign = 'middle';
-		middleCell.style.backgroundColor = '#f8f8f8';
-		middleCell.style.borderTop = '1px solid #ddd';
-		//middleCell.style.borderBottom = '1px solid #ddd';
-		middleCell.style.textAlign = 'center';
-		
-		this.runButton = AC.create('button', sizer);
-		this.runButton.classList.add('btn', 'btn-default', 'btn-sm');
-		this.runButton.textContent = 'Run Current';
-		this.runButton.onclick = this.runQuery.bind(this);
-		
-		var spacer = new ACStaticCell(sizer);
-		spacer.style.display = 'inline-block';
-		spacer.style.width = '12px';
-		spacer.textContent = '  ';
-		
-		this.xlsxButton = AC.create('button', sizer);
-		this.xlsxButton.classList.add('btn', 'btn-default', 'btn-sm');
-		this.xlsxButton.textContent = this.xlsxButton.dataset.caption = 'Run All to XLSX';
-		this.xlsxButton.onclick = this.prepareXLSX.bind(this);
-		
-		var spacer = new ACStaticCell(sizer);
-		spacer.style.display = 'inline-block';
-		spacer.style.width = '12px';
-		spacer.textContent = '  ';
-		
-		this.copyButton = AC.create('button', sizer);
-		this.copyButton.classList.add('btn', 'btn-default', 'btn-sm');
-		this.copyButton.textContent = 'Copy Table';
-		this.copyButton.onclick = this.copyResults.bind(this);
-		
-		this.resultContainer = AC.create('div', this.grid.cell(2,0));
+		this.resultContainer = AC.create('div', this.itemGrid.cell(1,0));
 		this.resultContainer.style.width = '100%';
 		this.resultContainer.style.maxWidth = '100%';
 		this.resultContainer.style.height = '100%';
 		this.resultContainer.style.overflow = 'auto';
 		this.resultContainer.style.borderTop = '1px solid #ddd';
+		this.resultContainer.style.marginTop = '-3px';
+		
+		var itemActionBar = new ACToolBar(this.grid.cell(2,1));
+		itemActionBar.setStyle(ST_BORDER_TOP);
+		itemActionBar.setItems([
+			/*{symbol:'arrow-left', caption:'Toggle Script List', action:this.togglePane.bind(this, itemActionBar)},
+			{symbol:'arrow-up', caption:'Toggle Editor', action:this.toggleEditor.bind(this, itemActionBar)}*/
+		]);
+		
+		this.readPages();
+	}
+	
+	readPages()
+	{
+		var lastActiveItemID = this.listBox.getSelectedItem() ? this.listBox.getSelectedItem().dataset.id : null;
+		this.listBox.clear();
+		var first = true;
+		
+		for (var name in this.info.pages) {
+			var item = this.listBox.addItem(name, name);
+			item.value = this.info.pages[name];
+			if (first) {
+				this.listBox.selectItem(item);
+				first = false;
+			}
+		}
 	}
 	
 	onAttached()
 	{
 		this.rootNode.appendChild(this.grid);
 		if (this.resultContainerScrollTop) this.resultContainer.scrollTop = this.resultContainerScrollTop;
-		this.queryCtrl.focus();
+		this.editor.focus();
 	}
 	
 	onDetached()
 	{
+		this.saveItem();
 		this.resultContainerScrollTop = this.resultContainer.scrollTop;
 	}
 	
 	onAppCommand(command)
 	{
 		switch (command) {
+			case 'new': this.createItem(); break;
+			case 'save': this.saveItem(); break;
 			case 'enter': this.runQuery(); break;
+			case 'layout': this.resetLayout(); break;
 			case 'eof': this.exit(); break;
+		}
+	}
+	
+	writeInfo()
+	{
+		this.info.pages = {};
+		Array.from(this.listBox.children).forEach(item => {
+			this.info.pages[item.dataset.id] = item.value;
+		});
+		
+		this.info.listWidth = this.grid.cell(0,0).style.width;
+		
+		localStorage.setItem('LSQueryWindow', JSON.stringify(this.info));
+	}
+	
+	exportPage()
+	{
+		var selectedItem = this.listBox.getSelectedItem();
+		var contents = this.editor.getValue();
+		if (!contents || !selectedItem) return;
+		
+		var element = AC.create('a', this.rootNode);
+		element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(contents));
+		element.setAttribute('download', selectedItem.dataset.id + '.sql');
+		
+		element.style.display = 'none';
+		
+		element.click();
+		element.remove();
+	}
+	
+	selectItem(evt)
+	{
+		var lastItem = evt.detail.lastItem;
+		if (lastItem) lastItem.value = this.editor.getValue();
+		
+		var item = evt.detail.item;
+		if (item == lastItem) return;
+		
+		this.editor.session.setValue(item.value, -1);
+		this.editor.setReadOnly(false);
+		this.editor.renderer.$cursorLayer.element.style.display = "";
+		
+		this.resultContainer.clear();
+		
+		this.editor.focus();
+	}
+	
+	saveItem()
+	{
+		var item = this.listBox.activeItem;
+		if (item) item.value = this.editor.getValue();
+		this.writeInfo();
+	}
+	
+	createItem()
+	{
+		var name = 'new ' + LSQueryWindow.counter;
+		while (this.listBox.getItemByName(name)) {
+			LSQueryWindow.counter++;
+			name = 'new ' + LSQueryWindow.counter;
+		}
+		var item = this.listBox.addItem(name, name);
+		item.value = '';
+		this.listBox.selectItem(item);
+		LSQueryWindow.counter++;
+	}
+	
+	renameItem()
+	{
+		this.listBox.renameItem(this.listBox.activeItem);
+	}
+	
+	removeItem()
+	{
+		var selectedItem = this.listBox.getSelectedItem();
+		if (selectedItem && confirm('Query page ' + selectedItem.dataset.id + ' will be removed.')) {
+			selectedItem.remove();
+			this.editor.session.setValue('', -1);
+			this.editor.setReadOnly(true);
+			this.editor.renderer.$cursorLayer.element.style.display = 'none';
+			this.resultContainer.clear();
+		}
+	}
+	
+	enableQueryControls(visible)
+	{
+		if (visible) {
+			this.runButton.classList.remove('disabled');
+			this.xlsxButton.classList.remove('disabled');
+			this.copyButton.classList.remove('disabled');
+		} else {
+			this.runButton.classList.add('disabled');
+			this.xlsxButton.classList.add('disabled');
+			this.copyButton.classList.add('disabled');
 		}
 	}
 	
 	runQuery()
 	{
-		var queriesString = (typeof ace !== 'undefined' ? this.queryCtrl.getValue() : this.queryCtrl.value);
+		var item = this.listBox.activeItem;
+		if (!item) return;
+		
+		var queriesString = (typeof ace !== 'undefined' ? this.editor.getValue() : this.editor.value);
 		var queries = queriesString.split(';');
-		var curPos = this.queryCtrl.session.doc.positionToIndex(this.queryCtrl.getCursorPosition());
+		var curPos = this.editor.session.doc.positionToIndex(this.editor.getCursorPosition());
 		var strPos = 0;
 		for (var q = 0; queries.length > 1 && q < queries.length; q++) {
 			var strPos = queriesString.indexOf(';', strPos + 1);
@@ -125,11 +296,11 @@ class LSQueryWindow extends ACController
 		}
 		
 		this.resultContainer.clear();
-		this.runButton.disabled = this.xlsxButton.disabled = this.copyButton.disabled = true;
+		this.enableQueryControls(false);
 		
 		// fix control jump issue
-		var cr = this.grid.cell(0,0).getBoundingClientRect();
-		this.grid.cell(0,0).style.minHeight = this.grid.cell(0,0).style.height = cr.height + 'px';
+		var cr = this.itemGrid.cell(0,0).getBoundingClientRect();
+		this.itemGrid.cell(0,0).style.minHeight = this.itemGrid.cell(0,0).style.height = cr.height + 'px';
 		
 		DB.query(query, (rows, info) => {
 			
@@ -166,20 +337,23 @@ class LSQueryWindow extends ACController
 			});
 			
 		}, null, evt => {
-			this.runButton.disabled = this.xlsxButton.disabled = this.copyButton.disabled = false;
+			this.enableQueryControls(true);
 		});
 	}
 	
 	prepareXLSX()
 	{
-		var queries = ((typeof ace !== 'undefined' ? this.queryCtrl.getValue() : this.queryCtrl.value).split(';')).filter(function(value) {
+		var item = this.listBox.activeItem;
+		if (!item) return;
+		
+		var queries = ((typeof ace !== 'undefined' ? this.editor.getValue() : this.editor.value).split(';')).filter(function(value) {
 			return value.trim().length > 0;
 		});
 		var queryCount = queries.length;
 		if (queryCount < 1) return;
 		
-		this.runButton.disabled = this.xlsxButton.disabled = this.copyButton.disabled = true;
-		this.xlsxButton.textContent = '0/'+queryCount;
+		this.enableQueryControls(false);
+		this.xlsxButton.firstChild.textContent = '0/'+queryCount;
 		var datasets = [];
 		var colInfo = [];
 		this.labels = [];
@@ -208,18 +382,18 @@ class LSQueryWindow extends ACController
 				errorCount++;
 			}, (q) => {
 				counter++;
-				this.xlsxButton.textContent = counter+'/'+queryCount;
+				this.xlsxButton.firstChild.textContent = counter+'/'+queryCount;
 				if (counter == queryCount) {
-					this.runButton.disabled = this.xlsxButton.disabled = this.copyButton.disabled = false;
-					this.xlsxButton.textContent = this.xlsxButton.dataset.caption;
+					this.enableQueryControls(true);
+					this.xlsxButton.firstChild.textContent = this.xlsxButton.dataset.caption;
 					if (errorCount > 0) alert(errorCount + ' ' + (errorCount > 1 ? 'errors' : 'error') + ' encountered. See export file for more info.');
-					this.generateXLSX(datasets, colInfo);
+					this.generateXLSX(datasets, colInfo, item.dataset.id);
 				}
 			}, q);
 		}
 	}
 	
-	generateXLSX(datasets, colInfo)
+	generateXLSX(datasets, colInfo, outputFileName)
 	{
 		function Workbook() {
 			if(!(this instanceof Workbook)) return new Workbook();
@@ -253,7 +427,7 @@ class LSQueryWindow extends ACController
 		}
 		
 		var wbout = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
-		var outputFileName = Math.floor(Date.now() / 1000).toString();
+		//var outputFileName = Math.floor(Date.now() / 1000).toString();
 		saveAs(new Blob([LSQueryWindowTools.arrayBufferFromString(wbout)],{type:"application/octet-stream"}), outputFileName + ".xlsx");
 	}
 	
@@ -273,11 +447,17 @@ class LSQueryWindow extends ACController
 		sel.removeAllRanges();
 	}
 	
+	resetLayout()
+	{
+		this.info.listWidth = this.grid.cell(0,0).style.width = '16%';
+	}
+	
 	exit()
 	{
 		this.dispatchEvent('quit');
 	}
 }
+LSQueryWindow.counter = 1;
 
 class LSQueryWindowTools
 {
