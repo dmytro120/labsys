@@ -23,11 +23,11 @@ class LSScriptWindow extends ACController
 		this.grid.addSizer(0, AC_DIR_VERTICAL);
 		
 		// Left
-		var tb = new ACToolBar(this.grid.cell(0,0), { type: 'secondary' });
-		tb.classList.add('ls-toolbar');
-		tb.setStyle(ST_BORDER_BOTTOM | ST_BORDER_RIGHT);
-		tb.style.borderColor = '#17817b';
-		tb.setItems([
+		var modeToolBar = new ACToolBar(this.grid.cell(0,0), { type: 'secondary' });
+		modeToolBar.classList.add('ls-toolbar');
+		modeToolBar.setStyle(ST_BORDER_BOTTOM | ST_BORDER_RIGHT);
+		modeToolBar.style.borderColor = '#17817b';
+		modeToolBar.setItems([
 			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) },
 			{caption: 'Create', icon: 'add.png', tooltip: 'Create (⌘N)', action: this.createItem.bind(this) },
 			{caption: 'Open', icon: 'open.png', tooltip: 'Open (⌘O)', action: this.openItem.bind(this) },
@@ -47,9 +47,9 @@ class LSScriptWindow extends ACController
 		this.listBox.setRearrangeable(true);
 		this.listBox.addEventListener('itemSelected', this.selectItem.bind(this));
 		
-		var ab = new ACToolBar(this.grid.cell(2,0));
-		ab.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
-		ab.setItems([
+		var modeActionBar = new ACToolBar(this.grid.cell(2,0));
+		modeActionBar.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
+		modeActionBar.setItems([
 			/*{symbol:'plus', caption:'New Entry', action:this.createItem.bind(this)},
 			{symbol:'folder-open', caption:'Open Entry', action:this.openItem.bind(this)},*/
 			{symbol:'step-backward', caption:'Previous Record', action:this.recPrevious.bind(this)},
@@ -58,17 +58,17 @@ class LSScriptWindow extends ACController
 		]);
 		
 		// Right
-		this.tbr = new ACToolBar(this.grid.cell(0,1), { type: 'secondary' });
-		this.tbr.classList.add('ls-toolbar');
-		this.tbr.setStyle(ST_BORDER_BOTTOM);
-		this.tbr.style.borderBottomColor = '#17817b';
-		this.tbr.setItems([
+		this.itemToolBar = new ACToolBar(this.grid.cell(0,1), { type: 'secondary' });
+		this.itemToolBar.classList.add('ls-toolbar');
+		this.itemToolBar.setStyle(ST_BORDER_BOTTOM);
+		this.itemToolBar.style.borderBottomColor = '#17817b';
+		this.itemToolBar.setItems([
 			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) },
 			{caption: 'Run', icon: 'play.png', tooltip: 'Run (⌘↵)', action: this.runScript.bind(this) },
 			{caption: 'Export', icon: 'export.png', action: this.exportScript.bind(this) },
 			{caption: 'Remove', icon: 'bin.png', action: this.removeItem.bind(this) }
 		]);
-		this.tbr.firstChild.firstChild.style.display = 'none';
+		this.itemToolBar.firstChild.firstChild.style.display = 'none';
 		
 		this.itemGrid = new ACFlexGrid(this.grid.cell(1,1), { rowHeights:[this.info.editorPaneHeight, 'auto'], colWidths:['100%'] });
 		this.itemGrid.addSizer(0, AC_DIR_HORIZONTAL);
@@ -94,26 +94,18 @@ class LSScriptWindow extends ACController
 		this.contentContainer.style.overflow = 'auto';
 		this.contentContainer.style.marginTop = '-3px';
 		
-		var vb = new ACToolBar(this.grid.cell(2,1));
-		vb.setStyle(ST_BORDER_TOP);
-		vb.setItems([
-			{symbol:'arrow-left', caption:'Toggle Script List', action:this.togglePane.bind(this, vb)},
-			{symbol:'arrow-up', caption:'Toggle Editor', action:this.toggleEditor.bind(this, vb)}
+		var itemActionBar = new ACToolBar(this.grid.cell(2,1));
+		itemActionBar.setStyle(ST_BORDER_TOP);
+		itemActionBar.setItems([
+			{symbol:'arrow-left', caption:'Toggle Script List', action:this.togglePane.bind(this, itemActionBar)},
+			{symbol:'arrow-up', caption:'Toggle Editor', action:this.toggleEditor.bind(this, itemActionBar)}
 		]);
-	}
-	
-	onAttached()
-	{
-		this.rootNode.appendChild(this.grid);
+		
 		this.readScripts();
-		if (this.contentContainerScrollTop) this.contentContainer.scrollTop = this.contentContainerScrollTop;
-		if ('onAttached' in this.contentContainer) this.contentContainer.onAttached.call(this.contentContainer);
 	}
 	
 	readScripts()
 	{
-		if (this.lcScrollTop !== null) this.listBox.parentElement.scrollTop = this.lcScrollTop;
-		
 		var lastActiveItemID = this.listBox.getSelectedItem() ? this.listBox.getSelectedItem().dataset.id : null;
 		var wasSameItemFound = false;
 		this.listBox.clear();
@@ -132,6 +124,14 @@ class LSScriptWindow extends ACController
 			this.scriptCtrl.session.setValue('');
 			this.contentContainer.clear();
 		}
+	}
+	
+	onAttached()
+	{
+		this.rootNode.appendChild(this.grid);
+		if (this.lcScrollTop) this.listBox.parentElement.scrollTop = this.lcScrollTop;
+		if (this.contentContainerScrollTop) this.contentContainer.scrollTop = this.contentContainerScrollTop;
+		if ('onAttached' in this.contentContainer) this.contentContainer.onAttached.call(this.contentContainer);
 	}
 	
 	onAppCommand(command)
@@ -227,41 +227,7 @@ class LSScriptWindow extends ACController
 	
 	renameItem()
 	{
-		var item = this.listBox.activeItem;
-		if (!item) return;
-		item.clear();
-		
-		var input = new ACTextInput(item);
-		input.firstChild.style.padding = '0';
-		input.firstChild.style.height = '20px';
-		input.value = item.dataset.id;
-		input.select();
-		input.focus();
-		
-		input.addEventListener('enter', e => {
-			item.focus();
-		});
-		input.addEventListener('blur', e => {
-			var oldName = item.dataset.id;
-			var newName = input.value;
-			
-			if (oldName != newName) {
-				if (newName.length < 1 || this.listBox.getItemById(newName, true)) {
-					input.style.borderColor = 'red';
-					input.focus();
-					return;
-				}
-				
-				item.clear();
-				
-				item.dataset.name = newName.toLowerCase();
-			}
-			
-			item.textContent = item.dataset.id = newName;
-		});
-		input.addEventListener('click', e => {
-			e.stopPropagation();
-		});
+		this.listBox.renameItem(this.listBox.activeItem);
 	}
 	
 	removeItem()
@@ -345,7 +311,7 @@ class LSScriptWindow extends ACController
 		for (var r = 0; r <= 2; r++) this.grid.cell(r,0).style.display = hide ? 'none' : 'table-cell';
 		a.classList.remove(hide ? 'glyphicon-arrow-left' : 'glyphicon-arrow-right');
 		a.classList.add(hide ? 'glyphicon-arrow-right' : 'glyphicon-arrow-left');
-		this.tbr.firstChild.firstChild.style.display = hide ? 'block' : 'none';
+		this.itemToolBar.firstChild.firstChild.style.display = hide ? 'block' : 'none';
 	}
 	
 	toggleEditor(bar)

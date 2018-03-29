@@ -72,6 +72,44 @@ class ACListBox extends ACControl
 		}
 	}
 	
+	renameItem(item)
+	{
+		if (!item) return;
+		item.clear();
+		
+		var input = new ACTextInput(item);
+		input.firstChild.style.padding = '0';
+		input.firstChild.style.height = '20px';
+		input.value = item.dataset.id;
+		input.select();
+		input.focus();
+		
+		input.addEventListener('enter', e => {
+			item.focus();
+		});
+		input.addEventListener('blur', e => {
+			var oldName = item.dataset.id;
+			var newName = input.value;
+			
+			if (oldName != newName) {
+				if (newName.length < 1 || this.getItemById(newName, true)) {
+					input.style.borderColor = 'red';
+					input.focus();
+					return;
+				}
+				
+				item.clear();
+				
+				item.dataset.name = newName.toLowerCase();
+			}
+			
+			item.textContent = item.dataset.id = newName;
+		});
+		input.addEventListener('click', e => {
+			e.stopPropagation();
+		});
+	}
+	
 	getItemById(id, isExact)
 	{
 		return this.querySelector('button[data-id' + (!isExact ? '^' : '') + '="'+id+'"]');;

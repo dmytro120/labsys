@@ -25,10 +25,11 @@ class LSImportWindow extends ACController
 		if (!('dbType' in this.info) || ![ORACLE, MSSQL].includes(this.info.dbType)) this.info.dbType = ORACLE;
 		this.setQuotes();
 		
-		// Table Presets & Defaults
+		// Table Presets & Defaults & Composite Parents
 		if (!('skipTables' in this.info) || !Array.isArray(this.info.skipTables)) this.info.skipTables = [];
 		if (!('doOnlyTables' in this.info) || !Array.isArray(this.info.doOnlyTables)) this.info.doOnlyTables = [];
 		if (!('tableDefaults' in this.info)) this.info.tableDefaults = {};
+		if (!('tableCompositeParentIDs' in this.info)) this.info.tableCompositeParentIDs = {};
 		
 		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '40px'], colWidths:['100%'] });
 		
@@ -48,7 +49,8 @@ class LSImportWindow extends ACController
 			{caption: 'Set DB Type', icon: 'db.png', action: this.setDBType.bind(this) },
 			{caption: 'Set Skip Tables', icon: 'reject.png', action: this.setTables.bind(this, 'skipTables') },
 			{caption: 'Set Do Only Tables', icon: 'select.png', action: this.setTables.bind(this, 'doOnlyTables') },
-			{caption: 'Set Defaults', icon: 'defaults.png', action: this.setDefaults.bind(this) },
+			{caption: 'Set Defaults', icon: 'defaults.png', action: this.setRules.bind(this, 'tableDefaults') },
+			{caption: 'Set Composite Parent IDs', icon: 'hierarchy.png', action: this.setRules.bind(this, 'tableCompositeParentIDs') },
 			{caption: 'Kill Queue', icon: 'kill.png', action: this.killQueue.bind(this) }
 		]);
 		
@@ -163,10 +165,10 @@ class LSImportWindow extends ACController
 		modal.display();
 	}
 	
-	setDefaults()
+	setRules(varName)
 	{
 		var modal = new ACDialog(document.body);
-		modal.setTitle('Defaults');
+		modal.setTitle(varName);
 		modal.contentCell.style.height = '400px';
 		
 		var errorCell = new ACStaticCell(modal.footerCell);
@@ -185,8 +187,8 @@ class LSImportWindow extends ACController
 		editor.setFontSize(14);
 		editor.getSession().setUseSoftTabs(false);
 		editor.session.setValue(
-			Object.keys(this.info.tableDefaults).length > 0 ? 
-			JSON.stringify(this.info.tableDefaults, null, '\t') : 
+			Object.keys(this.info[varName]).length > 0 ? 
+			JSON.stringify(this.info[varName], null, '\t') : 
 			''
 		);
 		editor.focus();
@@ -195,17 +197,17 @@ class LSImportWindow extends ACController
 		});
 		
 		modal.addEventListener('close', evt => {
-			var tablePresetsString = editor.getValue();
-			if (tablePresetsString) try {
-				var tablePresets = JSON.parse(tablePresetsString);
-				if (tablePresets) this.info.tableDefaults = tablePresets;
+			var rulesString = editor.getValue();
+			if (rulesString) try {
+				var rules = JSON.parse(rulesString);
+				if (rules) this.info[varName] = rules;
 				this.writeInfo();
 			} catch (e) {
 				evt.preventDefault();
 				errorCell.textContent = e.message;
 				editor.focus();
 			}
-			else this.info.tableDefaults = {};
+			else this.info[varName] = {};
 		});
 		
 		modal.display();
@@ -343,27 +345,18 @@ class LSImportWindow extends ACController
 				// automatically compose order number
 				var parentCompositeID = null;
 				
-				if (tableName == 'LIST_ENTRY' && 'LIST' in entry) parentCompositeID = entry.LIST;
-				if (tableName == 'PRODUCT_GRADE' && 'PRODUCT' in entry) parentCompositeID = entry.PRODUCT;
-				if (
-					tableName == 'PROD_GRADE_STAGE' && 
-					'PRODUCT' in entry && 
-					'SAMPLING_POINT' in entry && 'GRADE' in entry
-				)
-				parentCompositeID = entry.PRODUCT + '/' + 
-					entry.SAMPLING_POINT + ':' + entry.GRADE;
-				if (
-					tableName == 'PRODUCT_SPEC' && 
-					'PRODUCT' in entry && 
-					'SAMPLING_POINT' in entry && 'GRADE' in entry &&
-					'STAGE' in entry && 'ANALYSIS' in entry && 'SPEC_TYPE' in entry
-				)
-				parentCompositeID = entry.PRODUCT + '/' + 
-					entry.SAMPLING_POINT + ':' + entry.GRADE + '/' + 
-					entry.STAGE + ':' + entry.ANALYSIS + ':' + entry.SPEC_TYPE;
-				if (tableName == 'COMPONENT' && 'ANALYSIS' in entry) parentCompositeID = entry.ANALYSIS;
-				if (tableName == 'T_PH_SAMPLE_PLAN_EN' && 'T_PH_SAMPLE_PLAN' in entry) parentCompositeID = entry.T_PH_SAMPLE_PLAN;
-				if (tableName == 'T_PH_ITEM_CODE_SPEC' && 'T_PH_ITEM_CODE' in entry) parentCompositeID = entry.T_PH_ITEM_CODE;
+				if (tableName in this.info.tableCompositeParentIDs) {
+					var compositeParentIDs = this.info.tableCompositeParentIDs[tableName];
+					var bits = [];
+					compositeParentIDs.forEach(fieldName => {
+						if (!(fieldName in entry)) {
+							bits = [];
+							return;
+						}
+						bits.push(entry[fieldName]);
+					});
+					if (bits.length > 0) parentCompositeID = bits.join(':');
+				}
 				
 				if (parentCompositeID) {
 					if (!this.tableKeys[tableName].includes('ORDER_NUMBER')) this.tableKeys[tableName].push('ORDER_NUMBER');
