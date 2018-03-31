@@ -17,6 +17,7 @@ class LSQueryWindow extends ACController
 		if (!('pages' in this.info)) this.info.pages = {};
 		if (Object.keys(this.info.pages) < 1) this.info.pages.default = '';
 		if (!('listWidth' in this.info)) this.info.listWidth = '16%';
+		if (!('editorHeight' in this.info)) this.info.editorHeight = '50%';
 		
 		// Main Grid
 		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '40px'], colWidths:[this.info.listWidth, 'auto'] });
@@ -83,7 +84,7 @@ class LSQueryWindow extends ACController
 		);
 		//this.itemToolBar.firstChild.firstChild.style.display = 'none';
 		
-		this.itemGrid = new ACFlexGrid(this.grid.cell(1,1), { rowHeights:['50%', 'auto'], colWidths:['100%'] });
+		this.itemGrid = new ACFlexGrid(this.grid.cell(1,1), { rowHeights:[this.info.editorHeight, 'auto'], colWidths:['100%'] });
 		this.itemGrid.addSizer(0, AC_DIR_HORIZONTAL);
 		
 		var topCell = this.itemGrid.cell(0,0);
@@ -188,6 +189,7 @@ class LSQueryWindow extends ACController
 		});
 		
 		this.info.listWidth = this.grid.cell(0,0).style.width;
+		this.info.editorHeight = this.itemGrid.cell(0,0).style.height;
 		
 		localStorage.setItem('LSQueryWindow', JSON.stringify(this.info));
 	}
@@ -450,6 +452,7 @@ class LSQueryWindow extends ACController
 	resetLayout()
 	{
 		this.info.listWidth = this.grid.cell(0,0).style.width = '16%';
+		this.info.editorHeight = this.itemGrid.cell(0,0).style.height = '50%';
 	}
 	
 	exit()
