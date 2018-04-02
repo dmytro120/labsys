@@ -13,7 +13,8 @@ class DB
 		xhr.addEventListener('error', this.onError.bind(this, xhr, thenFn, id));
 		xhr.addEventListener('abort', this.onAbort.bind(this, xhr));
 		
-		xhr.open('GET', 'http://localhost:7000' + '/'+encodeURIComponent(query));
+		if (query.slice(-1) != '/') query = encodeURIComponent(query);
+		xhr.open('GET', 'http://localhost:7000' + '/' + query);
 		xhr.send();
 	}
 	
@@ -36,6 +37,7 @@ class DB
 		}
 		if (response && okFn) {
 			if ('rows' in response && 'info' in response) okFn.call(this, response.rows, response.info, id);
+			else okFn.call(this, response, {}, id);
 			if (thenFn) thenFn.call(this, id);
 		}
 	}
