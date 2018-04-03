@@ -35,28 +35,38 @@ class LSQueryWindow extends ACController
 			{caption: 'Rename', icon: 'rename.png', action: this.renameItem.bind(this) }
 		]);
 		
-		var listContainer = new ACStaticCell(this.grid.cell(1,0));
-		listContainer.style.height = '100%';
-		listContainer.style.overflow = 'auto';
 		this.grid.cell(1,0).style.borderRight = '1px solid #ddd';
 		this.grid.cell(1,0).style.verticalAlign = 'top';
-		this.lcScrollTop = null;
-		listContainer.onscroll = function(evt) { this.lcScrollTop = listContainer.scrollTop }.bind(this);
+		
+		this.listContainer = new ACStaticCell(this.grid.cell(1,0));
+		this.listContainer.style.height = '100%';
+		this.listContainer.style.overflow = 'auto';
+		this.listContainer.style.display = 'block';
+		this.lcScrollTop = 0;
+		this.listContainer.onscroll = evt => this.lcScrollTop = this.listContainer.scrollTop;
+		
+		this.structTV = new ACTreeView(this.grid.cell(1,0));
+		this.structTV.style.display = 'none';
+		this.scScrollTop = 0;
+		this.structTV.onscroll = evt => {
+			this.scScrollTop = this.structTV.scrollTop;
+			if (this.popOver) this.popOver.close();
+		}
 
-		this.listBox = new ACListBox(listContainer);
+		this.listBox = new ACListBox(this.listContainer);
 		this.listBox.classList.add('scriptlist');
 		this.listBox.setRearrangeable(true);
 		this.listBox.addEventListener('itemSelected', this.selectItem.bind(this));
 		
 		var modeActionBar = new ACToolBar(this.grid.cell(2,0));
 		modeActionBar.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
-		/*modeActionBar.setItems([
-			{symbol:'plus', caption:'New Entry', action:this.createItem.bind(this)},
-			{symbol:'folder-open', caption:'Open Entry', action:this.openItem.bind(this)},
-			{symbol:'step-backward', caption:'Previous Record', action:this.recPrevious.bind(this)},
-			{symbol:'step-forward', caption:'Next Record', action:this.recNext.bind(this)},
-			{symbol:'pencil', caption:'Rename', action:this.renameItem.bind(this)}
-		]);*/
+		modeActionBar.setRadio(true);
+		modeActionBar.setItems([
+			{symbol:'list', caption:'List', action:this.setLeftView.bind(this, this.listContainer, this.structTV)},
+			{symbol:'equalizer', caption:'Structure', action:this.setLeftView.bind(this, this.structTV, this.listContainer)}
+		]);
+		modeActionBar.setActiveItem(modeActionBar.firstChild.firstChild);
+		
 		
 		// Right
 		this.itemToolBar = new ACToolBar(this.grid.cell(0,1), { type: 'secondary' });
@@ -69,12 +79,12 @@ class LSQueryWindow extends ACController
 		this.runButton = this.itemToolBar.addItem(
 			{caption: 'Run Current', icon: 'play.png', tooltip: 'Run (⌘↵)', action: this.runQuery.bind(this) }
 		);
+		this.copyButton = this.itemToolBar.addItem(
+			{caption: 'Copy Table', icon: 'copy.png', action: this.copyResults.bind(this) }
+		);
 		var caption = 'Run All to XLSX';
 		this.xlsxButton = this.itemToolBar.addItem(
 			{caption: caption, icon: 'xlsx.png', dataset: { caption: caption }, action: this.prepareXLSX.bind(this) }
-		);
-		this.copyButton = this.itemToolBar.addItem(
-			{caption: 'Copy Table to Clipboard', icon: 'copy.png', action: this.copyResults.bind(this) }
 		);
 		this.itemToolBar.addItem(
 			{caption: 'Export Queries', icon: 'export.png', action: this.exportPage.bind(this) }
@@ -138,6 +148,19 @@ class LSQueryWindow extends ACController
 			{symbol:'arrow-up', caption:'Toggle Editor', action:this.toggleEditor.bind(this, itemActionBar)}*/
 		]);
 		
+		// Populate structure
+		this.enableQueryControls(false);
+		DB.query('structure/', structure => {
+			this.enableQueryControls(true);
+			for (var tableName in structure) {
+				var tableNode = this.structTV.add(tableName, 'table.png');
+				structure[tableName].forEach(colName => {
+					var colNode = tableNode.add(colName, 'field.png');
+					colNode.parentElement.setAction(this.displayColumnInfo.bind(this, colNode, tableName, colName));
+				});
+			}
+		});
+		
 		this.readPages();
 	}
 	
@@ -160,6 +183,8 @@ class LSQueryWindow extends ACController
 	onAttached()
 	{
 		this.rootNode.appendChild(this.grid);
+		this.listContainer.scrollTop = this.lcScrollTop;
+		this.structTV.scrollTop = this.scScrollTop;
 		if (this.resultContainerScrollTop) this.resultContainer.scrollTop = this.resultContainerScrollTop;
 		this.editor.focus();
 	}
@@ -192,6 +217,14 @@ class LSQueryWindow extends ACController
 		this.info.editorHeight = this.itemGrid.cell(0,0).style.height;
 		
 		localStorage.setItem('LSQueryWindow', JSON.stringify(this.info));
+	}
+	
+	setLeftView(containerToShow, containerToHide)
+	{
+		containerToHide.style.display = 'none';
+		containerToShow.style.display = 'block';
+		if (this.lcScrollTop) this.listContainer.scrollTop = this.lcScrollTop;
+		if (this.scScrollTop) this.structTV.scrollTop = this.scScrollTop;
 	}
 	
 	exportPage()
@@ -345,6 +378,8 @@ class LSQueryWindow extends ACController
 	
 	prepareXLSX()
 	{
+		if (!confirm('WARNING: All queries on this page will be executed.')) return;
+		
 		var item = this.listBox.activeItem;
 		if (!item) return;
 		
@@ -453,6 +488,26 @@ class LSQueryWindow extends ACController
 	{
 		this.info.listWidth = this.grid.cell(0,0).style.width = '16%';
 		this.info.editorHeight = this.itemGrid.cell(0,0).style.height = '50%';
+	}
+	
+	displayColumnInfo(colNode, tableName, colName)
+	{
+		var oldSCScrollTop = this.scScrollTop;
+		DB.query(`structure/${tableName}/${colName}/`, structure => {
+			var colInfo = structure[tableName][0];
+			
+			var displayBits = [];
+			for (var key in colInfo) {
+				if (key[0] == 's' && key[1] == 's') continue;
+				displayBits.push(`${key.toUpperCase()}: ${colInfo[key]}`);
+			}
+			
+			var link = colNode.parentElement.children[1];
+			if (document.activeElement != link || this.scScrollTop != oldSCScrollTop) return;
+			link.dataset.content = displayBits.join('\r\n');
+			this.popOver = new Popover(link, {trigger: ' ', placement: 'right', duration: 0});
+			this.popOver.toggle();
+		});
 	}
 	
 	exit()

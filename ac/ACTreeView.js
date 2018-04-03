@@ -113,6 +113,7 @@ class ACTreeViewNode extends ACControl
 		});
 		
 		this.labelCtrl = AC.create('a', this);
+		this.labelCtrl.tabIndex = '-1';
 		//this.labelCtrl.classList.add('vtree-leaf-label');
 		this.labelCtrl.addEventListener('click', evt => {
 			this.select();
@@ -150,6 +151,7 @@ class ACTreeViewNode extends ACControl
 	
 	select()
 	{
+		this.labelCtrl.focus();
 		if (this.parentElement.treeView.selectedNode) this.parentElement.treeView.selectedNode.classList.remove('vtree-selected');
 		this.classList.add('vtree-selected');
 		this.parentElement.treeView.selectedNode = this;

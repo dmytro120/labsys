@@ -63,7 +63,8 @@ ac-treeview a {
 
 ac-treeview a.icon {
 	background-repeat: no-repeat;
-	padding-left: 20px;
+	background-position: 2px 0px;
+	padding-left: 24px;
 }
 
 ac-treeview.hovereffect ac-treeviewnode a:hover {

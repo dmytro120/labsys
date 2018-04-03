@@ -978,7 +978,7 @@
     this.options.placement = options.placement ? options.placement : 'top';
     this.options.delay = parseInt(options.delay) || 100;
     this.options.dismiss = options.dismiss && options.dismiss === 'true' ? true : false;
-    this.duration = 150;
+    this.duration = 0;//150;
     this.options.duration = (isIE && isIE < 10) ? 0 : (options.duration || this.duration);
     this.options.container = document.body;
     if ( !this.content && !this.options.template ) return;
@@ -1058,7 +1058,8 @@
         if (this.options.dismiss && this.title === null) {
           popoverContent.innerHTML = this.content + '<button type="button" class="close">×</button>';
         } else {
-          popoverContent.innerHTML = this.content;
+          //popoverContent.innerHTML = this.content;
+		  popoverContent.textContent = this.content;
         }
   
       } else {  // or create the popover from template
@@ -1125,7 +1126,9 @@
     } else if (this.options.trigger === 'focus') {
       this.link.addEventListener('focus', this.toggle, false);
       if (!this.options.dismiss) { this.link.addEventListener('blur', this.close, false);  }
-    }
+    } else {
+		this.link.addEventListener('blur', this.close, false);
+	}
   
     if (this.options.dismiss) {  document.addEventListener('click', this.dismiss, false); }
   
