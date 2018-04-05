@@ -174,6 +174,10 @@
 	padding-top: 10px;
 	padding-bottom: 10px;
 	line-height: 20px;
+	background-repeat: no-repeat;
+	background-position: 12px 12px;
+	color: black;
+	opacity: 0.6;
 }
 /*@media (max-width: 767px) {*/
 	.navbar-nav .open .dropdown-menu {
@@ -351,11 +355,15 @@
 	color: #777;
 }
 .navbar-default .navbar-nav > li > a {
-	color: #777;
+	/*color: #777;*/
+	color: black;
+	padding-left: 13px;
+	padding-right: 13px;
 }
 .navbar-default .navbar-nav > li > a:hover/*,
 .navbar-default .navbar-nav > li > a:focus*/ {
-	color: #333;
+	/*color: #333;*/
+	opacity: 1;
 	background-color: transparent;
 }
 .navbar-default .navbar-nav > li > a:focus {
@@ -364,6 +372,7 @@
 .navbar-default .navbar-nav > .active > a,
 .navbar-default .navbar-nav > .active > a:hover,
 .navbar-default .navbar-nav > .active > a:focus {
+	opacity: 1;
 	color: #555;
 	background-color: #e7e7e7;
 }
@@ -559,19 +568,19 @@ ac-menubar .navbar-nav > li > a { padding-top: 2px; padding-bottom: 2px; padding
 
 /* Primary Bar */
 .navbar.primary .navbar-nav > li > a {
+	opacity: 1;
 	width: 64px;
 	text-align: center;
 	padding: 48px 2px 6px; /* top right bottom left */
 	text-transform: uppercase;
 	font-size: smaller; 
-	background-repeat: no-repeat;
 	background-position: 16px 12px; /* X Y */
 }
 
 /* Secondary Bar */
 .navbar.secondary .navbar-nav > li > a {
+	opacity: 1;
 	line-height: 24px;
-	background-repeat: no-repeat;
 	background-position: 6px 4px;
 	padding: 0;
 	padding-left: 28px;

@@ -41,15 +41,13 @@ class LSQueryWindow extends ACController
 		this.listContainer = new ACStaticCell(this.grid.cell(1,0));
 		this.listContainer.style.height = '100%';
 		this.listContainer.style.overflow = 'auto';
-		this.listContainer.style.display = 'block';
-		this.lcScrollTop = 0;
-		this.listContainer.onscroll = evt => this.lcScrollTop = this.listContainer.scrollTop;
+		this.listContainer.lastScrollTop = 0;
+		this.listContainer.onscroll = evt => this.listContainer.lastScrollTop = this.listContainer.scrollTop;
 		
 		this.structTV = new ACTreeView(this.grid.cell(1,0));
-		this.structTV.style.display = 'none';
-		this.scScrollTop = 0;
+		this.structTV.lastScrollTop = 0;
 		this.structTV.onscroll = evt => {
-			this.scScrollTop = this.structTV.scrollTop;
+			this.structTV.lastScrollTop = this.structTV.scrollTop;
 			if (this.popOver) this.popOver.close();
 		}
 
@@ -62,8 +60,8 @@ class LSQueryWindow extends ACController
 		modeActionBar.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
 		modeActionBar.setRadio(true);
 		modeActionBar.setItems([
-			{symbol:'list', caption:'List', action:this.setLeftView.bind(this, this.listContainer, this.structTV)},
-			{symbol:'equalizer', caption:'Structure', action:this.setLeftView.bind(this, this.structTV, this.listContainer)}
+			{symbol:'list', caption:'List', targetNode: this.listContainer},
+			{symbol:'equalizer', caption:'Structure', targetNode: this.structTV}
 		]);
 		modeActionBar.setActiveItem(modeActionBar.firstChild.firstChild);
 		
@@ -183,8 +181,8 @@ class LSQueryWindow extends ACController
 	onAttached()
 	{
 		this.rootNode.appendChild(this.grid);
-		this.listContainer.scrollTop = this.lcScrollTop;
-		this.structTV.scrollTop = this.scScrollTop;
+		this.listContainer.scrollTop = this.listContainer.lastScrollTop;
+		this.structTV.scrollTop = this.structTV.lastScrollTop;
 		if (this.resultContainerScrollTop) this.resultContainer.scrollTop = this.resultContainerScrollTop;
 		this.editor.focus();
 	}
@@ -223,8 +221,8 @@ class LSQueryWindow extends ACController
 	{
 		containerToHide.style.display = 'none';
 		containerToShow.style.display = 'block';
-		if (this.lcScrollTop) this.listContainer.scrollTop = this.lcScrollTop;
-		if (this.scScrollTop) this.structTV.scrollTop = this.scScrollTop;
+		if (this.listContainer.lastScrollTop) this.listContainer.scrollTop = this.listContainer.lastScrollTop;
+		if (this.structTV.lastScrollTop) this.structTV.scrollTop = this.structTV.lastScrollTop;
 	}
 	
 	exportPage()
@@ -492,7 +490,7 @@ class LSQueryWindow extends ACController
 	
 	displayColumnInfo(colNode, tableName, colName)
 	{
-		var oldSCScrollTop = this.scScrollTop;
+		var oldSCScrollTop = this.structTV.lastScrollTop;
 		DB.query(`structure/${tableName}/${colName}/`, structure => {
 			var colInfo = structure[tableName][0];
 			
@@ -503,7 +501,7 @@ class LSQueryWindow extends ACController
 			}
 			
 			var link = colNode.parentElement.children[1];
-			if (document.activeElement != link || this.scScrollTop != oldSCScrollTop) return;
+			if (document.activeElement != link || this.structTV.lastScrollTop != oldSCScrollTop) return;
 			link.dataset.content = displayBits.join('\r\n');
 			this.popOver = new Popover(link, {trigger: ' ', placement: 'right', duration: 0});
 			this.popOver.toggle();

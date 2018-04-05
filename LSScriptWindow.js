@@ -97,8 +97,8 @@ class LSScriptWindow extends ACController
 		var itemActionBar = new ACToolBar(this.grid.cell(2,1));
 		itemActionBar.setStyle(ST_BORDER_TOP);
 		itemActionBar.setItems([
-			{symbol:'arrow-left', caption:'Toggle Script List', action:this.togglePane.bind(this, itemActionBar)},
-			{symbol:'arrow-up', caption:'Toggle Editor', action:this.toggleEditor.bind(this, itemActionBar)}
+			{icon:'pane-left.png', tooltip:'Toggle Script List', action:this.togglePane.bind(this, itemActionBar)},
+			{icon:'pane-top.png', tooltip:'Toggle Editor', action:this.toggleEditor.bind(this, itemActionBar)}
 		]);
 		
 		this.readScripts();
@@ -306,21 +306,21 @@ class LSScriptWindow extends ACController
 	
 	togglePane(bar)
 	{
-		var a = bar.firstChild.firstChild.firstChild;
+		//var a = bar.firstChild.firstChild.firstChild;
 		var hide = ['table-cell', ''].includes(this.grid.cell(0,0).style.display);
 		for (var r = 0; r <= 2; r++) this.grid.cell(r,0).style.display = hide ? 'none' : 'table-cell';
-		a.classList.remove(hide ? 'glyphicon-arrow-left' : 'glyphicon-arrow-right');
-		a.classList.add(hide ? 'glyphicon-arrow-right' : 'glyphicon-arrow-left');
+		//a.classList.remove(hide ? 'glyphicon-arrow-left' : 'glyphicon-arrow-right');
+		//a.classList.add(hide ? 'glyphicon-arrow-right' : 'glyphicon-arrow-left');
 		this.itemToolBar.firstChild.firstChild.style.display = hide ? 'block' : 'none';
 	}
 	
 	toggleEditor(bar)
 	{
-		var a = bar.firstChild.lastChild.firstChild;
+		//var a = bar.firstChild.lastChild.firstChild;
 		var hide = ['table-row', ''].includes(this.itemGrid.cell(0,0).parentElement.style.display);
 		this.itemGrid.cell(0,0).parentElement.style.display = hide ? 'none' : 'table-row';
-		a.classList.remove(hide ? 'glyphicon-arrow-up' : 'glyphicon-arrow-down');
-		a.classList.add(hide ? 'glyphicon-arrow-down' : 'glyphicon-arrow-up');
+		//a.classList.remove(hide ? 'glyphicon-arrow-up' : 'glyphicon-arrow-down');
+		//a.classList.add(hide ? 'glyphicon-arrow-down' : 'glyphicon-arrow-up');
 		if (!hide) this.editor.focus();
 	}
 	
