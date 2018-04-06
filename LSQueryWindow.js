@@ -307,15 +307,21 @@ class LSQueryWindow extends ACController
 		if (!item) return;
 		
 		var queriesString = (typeof ace !== 'undefined' ? this.editor.getValue() : this.editor.value);
-		var queries = queriesString.split(';');
 		var curPos = this.editor.session.doc.positionToIndex(this.editor.getCursorPosition());
-		var strPos = 0;
-		for (var q = 0; queries.length > 1 && q < queries.length; q++) {
-			var strPos = queriesString.indexOf(';', strPos + 1);
-			if (strPos < 0) strPos = queriesString.length;
-			if (curPos <= strPos) break;
+		var semicolonRegex = /(;)(?=(?:[^']|'[^']*')*$)/g;
+		var startPos = 0;
+		var endPos = queriesString.length;
+		var match;
+		while (match = semicolonRegex.exec(queriesString)) {
+			var strPos = match.index;
+			if (curPos > strPos) startPos = strPos + 1;
+			if (strPos >= curPos) {
+				endPos = strPos;
+				break;
+			}
 		}
-		var query = queries[q];
+		var query = queriesString.substring(startPos, endPos);
+		
 		if (!query) {
 			this.resultContainer.clear();
 			return;
