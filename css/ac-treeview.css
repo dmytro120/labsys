@@ -55,10 +55,13 @@ ac-treeview a {
 	line-height: 18px;
 	display: inline-block;
 	vertical-align: top;
-	cursor: pointer;
 	max-width: 100%;
 	margin-left: 18px;
 	padding: 0 2px;
+}
+
+ac-treeview a.action {
+	cursor: pointer;
 }
 
 ac-treeview a.icon {
@@ -67,14 +70,30 @@ ac-treeview a.icon {
 	padding-left: 24px;
 }
 
-ac-treeview.hovereffect ac-treeviewnode a:hover {
+ac-treeview.hovereffect ac-treeviewnode a.action:hover {
 	background-color: #e7f4f9;
-	outline: 1px solid #d8f0fa;
+	/*outline: 1px solid #d8f0fa;*/
+	outline: none;
 }
 
-ac-treeviewnode.vtree-selected > a {
+ac-treeview ac-treeviewnode a:not(.action),
+ac-treeview ac-treeviewnode a:not(.action):hover,
+ac-treeview ac-treeviewnode a:not(.action):focus,
+ac-treeview ac-treeviewnode a:not(.action):active {
+	text-decoration: none;
+	cursor: default;
+	color: inherit;
+	outline: none;
+}
+
+ac-treeviewnode.vtree-selected > a, ac-treeviewnode.vtree-selected > a:active {
+	outline: none;
+}
+
+ac-treeviewnode.vtree-selected > a.action {
 	background-color: #beebff;
-	outline: 1px solid #99defd;
+	/*outline: 1px solid #99defd;*/
+	outline: none;
 }
 
 .vtree-contextmenu {

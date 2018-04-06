@@ -148,13 +148,14 @@ class LSQueryWindow extends ACController
 		
 		// Populate structure
 		this.enableQueryControls(false);
-		DB.query('structure/', structure => {
+		DB.query('structure/A/', structure => {
 			this.enableQueryControls(true);
 			for (var tableName in structure) {
 				var tableNode = this.structTV.add(tableName, 'table.png');
-				structure[tableName].forEach(colName => {
-					var colNode = tableNode.add(colName, 'field.png');
-					colNode.parentElement.setAction(this.displayColumnInfo.bind(this, colNode, tableName, colName));
+				tableNode.setAction(this.displayTableInfo.bind(this, tableNode, tableName));
+				structure[tableName].forEach(colInfo => {
+					var colNode = tableNode.add(colInfo.column_name, 'field.png');
+					colNode.setAction(this.displayColumnInfo.bind(this, colNode, tableName, colInfo));
 				});
 			}
 		});
@@ -215,14 +216,6 @@ class LSQueryWindow extends ACController
 		this.info.editorHeight = this.itemGrid.cell(0,0).style.height;
 		
 		localStorage.setItem('LSQueryWindow', JSON.stringify(this.info));
-	}
-	
-	setLeftView(containerToShow, containerToHide)
-	{
-		containerToHide.style.display = 'none';
-		containerToShow.style.display = 'block';
-		if (this.listContainer.lastScrollTop) this.listContainer.scrollTop = this.listContainer.lastScrollTop;
-		if (this.structTV.lastScrollTop) this.structTV.scrollTop = this.structTV.lastScrollTop;
 	}
 	
 	exportPage()
@@ -488,21 +481,74 @@ class LSQueryWindow extends ACController
 		this.info.editorHeight = this.itemGrid.cell(0,0).style.height = '50%';
 	}
 	
-	displayColumnInfo(colNode, tableName, colName)
+	displayTableInfo(tableNode, tableName)
 	{
 		var oldSCScrollTop = this.structTV.lastScrollTop;
-		DB.query(`structure/${tableName}/${colName}/`, structure => {
-			var colInfo = structure[tableName][0];
+		DB.query(`
+			SELECT *
+			FROM table_master
+			WHERE name = '${tableName}'
+		`, rows => {
+			if (rows.length < 1) return;
+			var tableInfo = rows[0];
 			
-			var displayBits = [];
-			for (var key in colInfo) {
-				if (key[0] == 's' && key[1] == 's') continue;
-				displayBits.push(`${key.toUpperCase()}: ${colInfo[key]}`);
+			var container = new ACStaticCell();
+			var htmlTable = AC.create('table', container);
+			htmlTable.classList.add('table', 'table-striped');
+			htmlTable.style.marginBottom = '0';
+			
+			for (var key in tableInfo) {
+				var value = tableInfo[key];
+				if (key == 'name' || !value) continue;
+				var htmlRow = AC.create('tr', htmlTable);
+				var htmlCell = AC.create('th', htmlRow);
+				htmlCell.textContent = key.toUpperCase();
+				var htmlCell = AC.create('td', htmlRow);
+				htmlCell.textContent = value;
 			}
 			
-			var link = colNode.parentElement.children[1];
+			var link = tableNode.children[1];
 			if (document.activeElement != link || this.structTV.lastScrollTop != oldSCScrollTop) return;
-			link.dataset.content = displayBits.join('\r\n');
+			link.dataset.content = container.innerHTML;
+			this.popOver = new Popover(link, {trigger: ' ', placement: 'right', duration: 0});
+			this.popOver.toggle();
+		});
+	}
+	
+	displayColumnInfo(colNode, tableName, colInfo)
+	{
+		var oldSCScrollTop = this.structTV.lastScrollTop;
+		var colName = colInfo.column_name;
+		DB.query(`
+			SELECT *
+			FROM field_master
+			WHERE table_name = '${tableName}'
+			AND field_name = '${colName}' 
+		`, rows => {
+			var comboColInfo = rows.length > 0 ? Object.assign(colInfo, rows[0]) : colInfo;
+			
+			var container = new ACStaticCell();
+			var htmlTable = AC.create('table', container);
+			htmlTable.classList.add('table', 'table-striped');
+			htmlTable.style.marginBottom = '0';
+			
+			for (var key in comboColInfo) {
+				var value = comboColInfo[key];
+				if (
+					(key[0] == 's' && key[1] == 's') || 
+					['table_name', 'field_name', 'column_name'].includes(key) ||
+					!value
+				) continue;
+				var htmlRow = AC.create('tr', htmlTable);
+				var htmlCell = AC.create('th', htmlRow);
+				htmlCell.textContent = key.toUpperCase();
+				var htmlCell = AC.create('td', htmlRow);
+				htmlCell.textContent = value;
+			}
+			
+			var link = colNode.children[1];
+			if (document.activeElement != link || this.structTV.lastScrollTop != oldSCScrollTop) return;
+			link.dataset.content = container.innerHTML;
 			this.popOver = new Popover(link, {trigger: ' ', placement: 'right', duration: 0});
 			this.popOver.toggle();
 		});

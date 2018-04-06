@@ -610,6 +610,7 @@ ac-menubar .navbar-nav > li > a { padding-top: 2px; padding-bottom: 2px; padding
 
 /* LabSys Tool Bar */
 .ls-toolbar.secondary .navbar-nav > li:not(.disabled) > a:hover { background-color: rgb(156, 214, 211); }
+.ls-toolbar.secondary .navbar-nav > li:not(.disabled) > a:active { background-color: rgb(136, 194, 191); }
 .ls-toolbar.secondary .navbar-nav > li.disabled > a { opacity: 0.5; cursor: default; color: black; }
 .ls-toolbar { background-color: rgb(176, 234, 231); color: black; } /* colorchange begins here */
 .ls-toolbar .navbar-brand { color: black; }

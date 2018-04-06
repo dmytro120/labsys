@@ -1058,8 +1058,8 @@
         if (this.options.dismiss && this.title === null) {
           popoverContent.innerHTML = this.content + '<button type="button" class="close">×</button>';
         } else {
-          //popoverContent.innerHTML = this.content;
-		  popoverContent.textContent = this.content;
+          popoverContent.innerHTML = this.content;
+		  //popoverContent.textContent = this.content;
         }
   
       } else {  // or create the popover from template
@@ -1112,7 +1112,8 @@
       } else if ( /left/.test(placement) ) { //LEFT
         return 'right';
       } else if ( /right/.test(placement) ) { //RIGHT
-        return 'left';
+        //return 'left';
+		return 'right';
       }
     };
   

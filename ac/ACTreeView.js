@@ -91,12 +91,12 @@ class ACTreeViewNodeList extends ACControl
 	add(caption, icon, action)
 	{
 		var node = new ACTreeViewNode(this);
-		node.setCaption(caption);
+		if (caption) node.setCaption(caption);
 		if (icon) node.setIcon(icon);
 		if (action) node.setAction(action);
 		node.classList.add('closed');
 		if (this.parentElement.setHasChildren) this.parentElement.setHasChildren(true);
-		return node.nodeList;
+		return node;
 	}
 }
 
@@ -140,6 +140,7 @@ class ACTreeViewNode extends ACControl
 	setAction(action)
 	{
 		this.action = action;
+		if (!this.labelCtrl.classList.contains('action')) this.labelCtrl.classList.add('action');
 	}
 	
 	setHasChildren(hasChildren)
@@ -147,6 +148,11 @@ class ACTreeViewNode extends ACControl
 		if (hasChildren && !this.hasChildren) this.classList.add('vtree-has-children');
 		else if (!hasChildren && this.hasChildren) this.classList.remove('vtree-has-children');
 		this.hasChildren = hasChildren;
+	}
+	
+	add(caption, cssClass, action)
+	{
+		return this.nodeList.add(caption, cssClass, action);
 	}
 	
 	select()

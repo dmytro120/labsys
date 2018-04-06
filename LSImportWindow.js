@@ -317,6 +317,7 @@ class LSImportWindow extends ACController
 			htmlTable.style.margin = '10px 0px';
 			htmlTable.setAttribute('border', 1);
 			htmlTable.setAttribute('cellpadding', 2);
+			htmlTable.style.whiteSpace = 'pre-wrap';
 			htmlTable.style.display = 'none';
 			
 			var caption = AC.create('caption', htmlTable);
