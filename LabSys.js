@@ -188,21 +188,13 @@ class LabSys
 		// Radio Bar
 		var radioBar = new ACToolBar(mh, { type: 'primary' });
 		radioBar.setRadio(true);
-		var setTarget = target => {
-			if (!lastActiveSheet) return;
-			lastActiveSheet.style.display = 'none';
-			target.style.display = 'block';
-			lastActiveSheet = target;
-		};
 		
 		// Modes Sheet
 		var modesSheet = new ACStaticCell(contentCell);
 		var lastActiveSheet = modesSheet;
 		
 		var modeBtn = radioBar.addItem({
-			caption: 'Modes', icon: 'switch.png', action: evt => {
-				setTarget(modesSheet);
-			}
+			caption: 'Modes', icon: 'switch.png', targetNode: modesSheet
 		});
 		radioBar.setActiveItem(modeBtn);
 		
@@ -264,9 +256,7 @@ class LabSys
 		aboutSheet.style.padding = '12px';
 		aboutSheet.style.display = 'none';
 		var aboutBtn = radioBar.addItem({
-			caption: 'About', icon: 'info.png', action: evt => {
-				setTarget(aboutSheet);
-			}
+			caption: 'About', icon: 'info.png', targetNode: aboutSheet
 		});
 		
 		var hCell = new ACStaticCell(aboutSheet);

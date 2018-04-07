@@ -18,6 +18,8 @@ class LSQueryWindow extends ACController
 		if (Object.keys(this.info.pages) < 1) this.info.pages.default = '';
 		if (!('listWidth' in this.info)) this.info.listWidth = '16%';
 		if (!('editorHeight' in this.info)) this.info.editorHeight = '50%';
+		if (!('leftPaneVisible' in this.info)) this.info.leftPaneVisible = true;
+		if (!('editorVisible' in this.info)) this.info.editorVisible = true;
 		
 		// Main Grid
 		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '40px'], colWidths:[this.info.listWidth, 'auto'] });
@@ -71,9 +73,9 @@ class LSQueryWindow extends ACController
 		this.itemToolBar.classList.add('ls-toolbar');
 		this.itemToolBar.setStyle(ST_BORDER_BOTTOM);
 		this.itemToolBar.style.borderBottomColor = '#17817b';
-		/*this.itemToolBar.setItems([
+		this.itemToolBar.addItem(
 			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) }
-		]);*/
+		);
 		this.runButton = this.itemToolBar.addItem(
 			{caption: 'Run Current', icon: 'play.png', tooltip: 'Run (⌘↵)', action: this.runQuery.bind(this) }
 		);
@@ -90,7 +92,7 @@ class LSQueryWindow extends ACController
 		this.itemToolBar.addItem(
 			{caption: 'Remove', icon: 'bin.png', action: this.removeItem.bind(this) }
 		);
-		//this.itemToolBar.firstChild.firstChild.style.display = 'none';
+		this.itemToolBar.firstChild.firstChild.style.display = 'none';
 		
 		this.itemGrid = new ACFlexGrid(this.grid.cell(1,1), { rowHeights:[this.info.editorHeight, 'auto'], colWidths:['100%'] });
 		this.itemGrid.addSizer(0, AC_DIR_HORIZONTAL);
@@ -142,8 +144,9 @@ class LSQueryWindow extends ACController
 		var itemActionBar = new ACToolBar(this.grid.cell(2,1));
 		itemActionBar.setStyle(ST_BORDER_TOP);
 		itemActionBar.setItems([
-			/*{symbol:'arrow-left', caption:'Toggle Script List', action:this.togglePane.bind(this, itemActionBar)},
-			{symbol:'arrow-up', caption:'Toggle Editor', action:this.toggleEditor.bind(this, itemActionBar)}*/
+			{icon:'pane-reset.png', tooltip:'Reset Layout', action:this.resetLayout.bind(this)},
+			{icon:'pane-left.png', tooltip:'Toggle List', action:this.togglePane.bind(this)},
+			{icon:'pane-top.png', tooltip:'Toggle Editor', action:this.toggleEditor.bind(this)}
 		]);
 		
 		// Populate structure
@@ -159,6 +162,9 @@ class LSQueryWindow extends ACController
 				});
 			}
 		});
+		
+		this.togglePane(this.info.leftPaneVisible);
+		this.toggleEditor(this.info.editorVisible);
 		
 		this.readPages();
 	}
@@ -488,10 +494,28 @@ class LSQueryWindow extends ACController
 		sel.removeAllRanges();
 	}
 	
+	togglePane(forceOn)
+	{
+		var hide = (forceOn != undefined) ? !forceOn : ['table-cell', ''].includes(this.grid.cell(0,0).style.display);
+		for (var r = 0; r <= 2; r++) this.grid.cell(r,0).style.display = hide ? 'none' : 'table-cell';
+		this.itemToolBar.firstChild.firstChild.style.display = hide ? 'block' : 'none';
+		this.info.leftPaneVisible = !hide;
+	}
+	
+	toggleEditor(forceOn)
+	{
+		var hide = (forceOn != undefined) ? !forceOn : ['table-row', ''].includes(this.itemGrid.cell(0,0).parentElement.style.display);
+		this.itemGrid.cell(0,0).parentElement.style.display = hide ? 'none' : 'table-row';
+		if (!hide) this.editor.focus();
+		this.info.editorVisible = !hide;
+	}
+	
 	resetLayout()
 	{
 		this.info.listWidth = this.grid.cell(0,0).style.width = '16%';
 		this.info.editorHeight = this.itemGrid.cell(0,0).style.height = '50%';
+		this.togglePane(true);
+		this.toggleEditor(true);
 	}
 	
 	displayTableInfo(tableNode, tableName)

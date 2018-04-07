@@ -44,7 +44,7 @@ class DB
 	
 	static onError(xhr, thenFn, id)
 	{
-		//delete DB.XHRs[xhr.LSXHRID];
+		delete DB.XHRs[xhr.LSXHRID];
 		DB.abortAll();
 		alert('LSE1000: No connexion to LDBC.')
 		if (thenFn) thenFn.call(this, id);

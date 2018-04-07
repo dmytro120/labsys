@@ -17,6 +17,8 @@ class LSScriptWindow extends ACController
 		if (!('scripts' in this.info)) this.info.scripts = {};
 		if (!('scriptPaneWidth' in this.info)) this.info.scriptPaneWidth = '20%';
 		if (!('editorPaneHeight' in this.info)) this.info.editorPaneHeight = '50%';
+		if (!('leftPaneVisible' in this.info)) this.info.leftPaneVisible = true;
+		if (!('editorVisible' in this.info)) this.info.editorVisible = true;
 		
 		// Main Grid
 		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '40px'], colWidths:[this.info.scriptPaneWidth, 'auto'] });
@@ -49,13 +51,11 @@ class LSScriptWindow extends ACController
 		
 		var modeActionBar = new ACToolBar(this.grid.cell(2,0));
 		modeActionBar.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
+		modeActionBar.setRadio(true);
 		modeActionBar.setItems([
-			/*{symbol:'plus', caption:'New Entry', action:this.createItem.bind(this)},
-			{symbol:'folder-open', caption:'Open Entry', action:this.openItem.bind(this)},*/
-			{symbol:'step-backward', caption:'Previous Record', action:this.recPrevious.bind(this)},
-			{symbol:'step-forward', caption:'Next Record', action:this.recNext.bind(this)}/*,
-			{symbol:'pencil', caption:'Rename', action:this.renameItem.bind(this)}*/
+			{symbol:'list', caption:'List', targetNode: listContainer}
 		]);
+		modeActionBar.setActiveItem(modeActionBar.firstChild.firstChild);
 		
 		// Right
 		this.itemToolBar = new ACToolBar(this.grid.cell(0,1), { type: 'secondary' });
@@ -97,9 +97,13 @@ class LSScriptWindow extends ACController
 		var itemActionBar = new ACToolBar(this.grid.cell(2,1));
 		itemActionBar.setStyle(ST_BORDER_TOP);
 		itemActionBar.setItems([
-			{icon:'pane-left.png', tooltip:'Toggle Script List', action:this.togglePane.bind(this, itemActionBar)},
-			{icon:'pane-top.png', tooltip:'Toggle Editor', action:this.toggleEditor.bind(this, itemActionBar)}
+			{icon:'pane-reset.png', tooltip:'Reset Layout', action:this.resetLayout.bind(this)},
+			{icon:'pane-left.png', tooltip:'Toggle Script List', action:this.togglePane.bind(this)},
+			{icon:'pane-top.png', tooltip:'Toggle Editor', action:this.toggleEditor.bind(this)}
 		]);
+		
+		this.togglePane(this.info.leftPaneVisible);
+		this.toggleEditor(this.info.editorVisible);
 		
 		this.readScripts();
 	}
@@ -304,30 +308,28 @@ class LSScriptWindow extends ACController
 		element.remove();
 	}
 	
-	togglePane(bar)
+	togglePane(forceOn)
 	{
-		//var a = bar.firstChild.firstChild.firstChild;
-		var hide = ['table-cell', ''].includes(this.grid.cell(0,0).style.display);
+		var hide = (forceOn != undefined) ? !forceOn : ['table-cell', ''].includes(this.grid.cell(0,0).style.display);
 		for (var r = 0; r <= 2; r++) this.grid.cell(r,0).style.display = hide ? 'none' : 'table-cell';
-		//a.classList.remove(hide ? 'glyphicon-arrow-left' : 'glyphicon-arrow-right');
-		//a.classList.add(hide ? 'glyphicon-arrow-right' : 'glyphicon-arrow-left');
 		this.itemToolBar.firstChild.firstChild.style.display = hide ? 'block' : 'none';
+		this.info.leftPaneVisible = !hide;
 	}
 	
-	toggleEditor(bar)
+	toggleEditor(forceOn)
 	{
-		//var a = bar.firstChild.lastChild.firstChild;
-		var hide = ['table-row', ''].includes(this.itemGrid.cell(0,0).parentElement.style.display);
+		var hide = (forceOn != undefined) ? !forceOn : ['table-row', ''].includes(this.itemGrid.cell(0,0).parentElement.style.display);
 		this.itemGrid.cell(0,0).parentElement.style.display = hide ? 'none' : 'table-row';
-		//a.classList.remove(hide ? 'glyphicon-arrow-up' : 'glyphicon-arrow-down');
-		//a.classList.add(hide ? 'glyphicon-arrow-down' : 'glyphicon-arrow-up');
 		if (!hide) this.editor.focus();
+		this.info.editorVisible = !hide;
 	}
 	
 	resetLayout()
 	{
 		this.info.scriptPaneWidth = this.grid.cell(0,0).style.width = '20%';
 		this.info.editorPaneHeight = this.itemGrid.cell(0,0).style.height = '50%';
+		this.togglePane(true);
+		this.toggleEditor(true);
 	}
 	
 	exit()
