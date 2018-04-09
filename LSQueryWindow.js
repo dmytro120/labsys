@@ -22,7 +22,7 @@ class LSQueryWindow extends ACController
 		if (!('editorVisible' in this.info)) this.info.editorVisible = true;
 		
 		// Main Grid
-		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '40px'], colWidths:[this.info.listWidth, 'auto'] });
+		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '36px'], colWidths:[this.info.listWidth, 'auto'] });
 		this.grid.addSizer(0, AC_DIR_VERTICAL);
 		
 		// Left

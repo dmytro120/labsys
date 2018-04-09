@@ -99,11 +99,11 @@ ac-flexgrid .ace_scroller { /*border-bottom: 1px solid #ddd;*/ }
 ac-listbox.list-group { display: block; margin-bottom: 0px; height: 100%; border-color: #ddd; border-style: solid; border-width: 0px; }
 .list-group-item:first-child { border-radius: 0px; border-top: 0px; }
 .list-group-item:last-child { border-radius: 0px; border-bottom: 0px; }
-.list-group-item { border-right: 0px; border-left: 0px; padding-top: 9px; padding-bottom: 9px; cursor: default; }
+.list-group-item { border-right: 0px; border-left: 0px; /*padding-top: 7px; padding-bottom: 7px;*/ padding-top: 2px; padding-bottom: 2px; border: none; cursor: default; }
 .list-group-item:focus { outline: none; }
-.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: rgb(248, 248, 248); color: inherit; border-color: inherit; }
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: #d9d9d9; /*rgb(248, 248, 248)*/ color: inherit; border-color: inherit; }
 ac-listbox.indrag .list-group-item:active { background-color: inherit; }
-.scriptlist .list-group-item:last-child { border-bottom: 1px solid #ddd }
+.scriptlist .list-group-item:last-child { /*border-bottom: 1px solid #ddd*/ }
 
 /* ACBrowseDialog */
 ac-browsedialog tbody>tr>th:first-child, ac-browsedialog tbody>tr>td:first-child { padding-left: 15px; }

@@ -171,11 +171,11 @@
 }
 .navbar-nav > li > a {
 	cursor: default;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	padding-top: 8px;
+	padding-bottom: 8px;
 	line-height: 20px;
 	background-repeat: no-repeat;
-	background-position: 12px 12px;
+	background-position: 12px 10px;
 	color: black;
 	opacity: 0.6;
 }

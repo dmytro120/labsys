@@ -6,7 +6,7 @@ class LSTableManager extends ACController
 	{
 		super(rootNode);
 		
-		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['auto', '40px'], colWidths:['20%', '80%'] });
+		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['auto', '36px'], colWidths:['20%', '80%'] });
 		this.grid.addSizer(0, AC_DIR_VERTICAL);
 		
 		this.itemType = 'ANALYSIS';

@@ -31,7 +31,7 @@ class LSImportWindow extends ACController
 		if (!('tableDefaults' in this.info)) this.info.tableDefaults = {};
 		if (!('tableCompositeParentIDs' in this.info)) this.info.tableCompositeParentIDs = {};
 		
-		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '40px'], colWidths:['100%'] });
+		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '36px'], colWidths:['100%'] });
 		
 		this.outputArea = new ACStaticCell(this.grid.cell(1,0));
 		this.outputArea.style.width = this.outputArea.style.height = '100%';
