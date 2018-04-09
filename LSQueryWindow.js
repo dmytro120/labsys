@@ -156,9 +156,17 @@ class LSQueryWindow extends ACController
 			for (var tableName in structure) {
 				var tableNode = this.structTV.add(tableName, 'table.png');
 				tableNode.setAction(this.displayTableInfo.bind(this, tableNode, tableName));
+				tableNode.children[1].setAttribute('draggable', true);
+				tableNode.children[1].addEventListener('dragstart', e => {
+					e.dataTransfer.setData("Text", e.target.textContent);
+				});
 				structure[tableName].forEach(colInfo => {
 					var colNode = tableNode.add(colInfo.column_name, 'field.png');
 					colNode.setAction(this.displayColumnInfo.bind(this, colNode, tableName, colInfo));
+					colNode.children[1].setAttribute('draggable', true);
+					colNode.children[1].addEventListener('dragstart', e => {
+						e.dataTransfer.setData("Text", e.target.textContent);
+					});
 				});
 			}
 		});

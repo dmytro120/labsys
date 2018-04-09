@@ -1,5 +1,5 @@
 /* General */
-html, body { height: 100%; }
+html, body { height: 100%; overflow: hidden; /* for popovers */ }
 @font-face {
 	font-family: FuturaO;
 	src: url(../fonts/ff.ttf);
