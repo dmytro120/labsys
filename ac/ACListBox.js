@@ -58,6 +58,12 @@ class ACListBox extends ACControl
 		
 		lgi.addEventListener('click', this._onItemSelected.bind(this, lgi, false), false);
 		
+		this.dispatchEvent(new CustomEvent('itemAdded', {
+			detail: {
+				item: lgi
+			}
+		}));
+		
 		return lgi;
 	}
 	

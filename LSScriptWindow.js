@@ -15,7 +15,7 @@ class LSScriptWindow extends ACController
 		}
 		catch (e) {}
 		if (!('scripts' in this.info)) this.info.scripts = {};
-		if (!('scriptPaneWidth' in this.info)) this.info.scriptPaneWidth = '20%';
+		if (!('scriptPaneWidth' in this.info)) this.info.scriptPaneWidth = '212px';
 		if (!('editorPaneHeight' in this.info)) this.info.editorPaneHeight = '50%';
 		if (!('leftPaneVisible' in this.info)) this.info.leftPaneVisible = true;
 		if (!('editorVisible' in this.info)) this.info.editorVisible = true;
@@ -32,8 +32,7 @@ class LSScriptWindow extends ACController
 		modeToolBar.setItems([
 			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) },
 			{caption: 'Create', icon: 'add.png', tooltip: 'Create (⌘N)', action: this.createItem.bind(this) },
-			{caption: 'Open', icon: 'open.png', tooltip: 'Open (⌘O)', action: this.openItem.bind(this) },
-			{caption: 'Rename', icon: 'rename.png', action: this.renameItem.bind(this) }
+			{caption: 'Open', icon: 'open.png', tooltip: 'Open (⌘O)', action: this.openItem.bind(this) }
 		]);
 		
 		var listContainer = new ACStaticCell(this.grid.cell(1,0));
@@ -48,6 +47,15 @@ class LSScriptWindow extends ACController
 		this.listBox.classList.add('scriptlist');
 		this.listBox.setRearrangeable(true);
 		this.listBox.addEventListener('itemSelected', this.selectItem.bind(this));
+		this.listBox.addEventListener('itemAdded', e => {
+			var item = e.detail.item;
+			item.contextMenu = {
+				'Rename': this.renameItem.bind(this, item),
+				'Remove': this.removeItem.bind(this, item)
+			};
+			item.contextMenuScrollDismisser = listContainer;
+			item.addEventListener('contextmenu', ACContextMenu.open);
+		});
 		
 		var modeActionBar = new ACToolBar(this.grid.cell(2,0));
 		modeActionBar.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
@@ -65,8 +73,7 @@ class LSScriptWindow extends ACController
 		this.itemToolBar.setItems([
 			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) },
 			{caption: 'Run', icon: 'play.png', tooltip: 'Run (⌘↵)', action: this.runScript.bind(this) },
-			{caption: 'Export', icon: 'export.png', action: this.exportScript.bind(this) },
-			{caption: 'Remove', icon: 'bin.png', action: this.removeItem.bind(this) }
+			{caption: 'Export', icon: 'export.png', action: this.exportScript.bind(this) }
 		]);
 		this.itemToolBar.firstChild.firstChild.style.display = 'none';
 		
@@ -117,6 +124,7 @@ class LSScriptWindow extends ACController
 		for (var name in this.info.scripts) {
 			var item = this.listBox.addItem(name, name);
 			item.value = this.info.scripts[name];
+			
 			if (name == lastActiveItemID) {
 				item.classList.add('active');
 				this.listBox.activeItem = item;
@@ -229,20 +237,22 @@ class LSScriptWindow extends ACController
 		if (n) this.listBox.selectItem(n);
 	}
 	
-	renameItem()
+	renameItem(item)
 	{
-		this.listBox.renameItem(this.listBox.activeItem);
+		this.listBox.renameItem(item);
 	}
 	
-	removeItem()
+	removeItem(item)
 	{
 		var selectedItem = this.listBox.getSelectedItem();
-		if (selectedItem && confirm('Script ' + selectedItem.dataset.id + ' will be removed.')) {
-			selectedItem.remove();
-			this.editor.session.setValue('', -1);
-			this.editor.setReadOnly(true);
-			this.editor.renderer.$cursorLayer.element.style.display = 'none';
-			this.contentContainer.clear();
+		if (item && confirm('Script ' + item.dataset.id + ' will be removed.')) {
+			item.remove();
+			if (item == selectedItem) {
+				this.editor.session.setValue('', -1);
+				this.editor.setReadOnly(true);
+				this.editor.renderer.$cursorLayer.element.style.display = 'none';
+				this.contentContainer.clear();
+			}
 		}
 	}
 	
@@ -326,7 +336,7 @@ class LSScriptWindow extends ACController
 	
 	resetLayout()
 	{
-		this.info.scriptPaneWidth = this.grid.cell(0,0).style.width = '20%';
+		this.info.scriptPaneWidth = this.grid.cell(0,0).style.width = '212px';
 		this.info.editorPaneHeight = this.itemGrid.cell(0,0).style.height = '50%';
 		this.togglePane(true);
 		this.toggleEditor(true);

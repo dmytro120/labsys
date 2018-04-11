@@ -110,3 +110,16 @@ ac-browsedialog tbody>tr>th:first-child, ac-browsedialog tbody>tr>td:first-child
 ac-browsedialog tbody>tr>th:last-child, ac-browsedialog tbody>tr>td:last-child { padding-right: 15px; border-right: 0px; }
 ac-browsedialog tbody>tr:last-child td { border-bottom: 0px; }
 ac-browsedialog tr.last-item td { border-bottom: 0px; }
+
+/* ACContextMenu */
+ac-contextmenu {
+	display: block; z-index: 20; position: absolute; min-width: 160px; 
+	background-color: #fff; background-clip: padding-box; 
+	box-shadow: 2px 2px 2px #8e8e8e;
+	border: 1px solid #bababa;
+	font-size: 9pt; font-family: 'Segoe UI', sans-serif;
+	padding: 2px 0px;
+}
+ac-contextmenuitem { display: block; padding: 3px 20px; line-height: 1.5; color: black; white-space: nowrap; user-select: none; cursor: default; }
+ac-contextmenuitem:hover { background-color: #ebebeb; }
+ac-contextmenuitem:active, ac-contextmenuitem:focus { outline: none; /*background-color: #ddd;*/ }

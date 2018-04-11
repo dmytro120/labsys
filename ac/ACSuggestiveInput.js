@@ -27,6 +27,7 @@ class ACSuggestiveInput extends ACInput
 			this.dl.clear();
 			if (evt.key != 'Enter') return;
 			this.dispatchEvent(new CustomEvent('scan', {detail: { value: this.inputBox.value }}));
+			evt.preventDefault();
 		});
 		
 		this.inputBox.focus();

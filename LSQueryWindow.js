@@ -16,7 +16,7 @@ class LSQueryWindow extends ACController
 		catch (e) {}
 		if (!('pages' in this.info)) this.info.pages = {};
 		if (Object.keys(this.info.pages) < 1) this.info.pages.default = '';
-		if (!('listWidth' in this.info)) this.info.listWidth = '16%';
+		if (!('listWidth' in this.info)) this.info.listWidth = '260px';
 		if (!('editorHeight' in this.info)) this.info.editorHeight = '50%';
 		if (!('leftPaneVisible' in this.info)) this.info.leftPaneVisible = true;
 		if (!('editorVisible' in this.info)) this.info.editorVisible = true;
@@ -33,8 +33,7 @@ class LSQueryWindow extends ACController
 		modeToolBar.setItems([
 			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) },
 			{caption: 'Create', icon: 'add.png', tooltip: 'Create (⌘N)', action: this.createItem.bind(this) },
-			//{caption: 'Open', icon: 'open.png', tooltip: 'Open (⌘O)', action: this.openItem.bind(this) },
-			{caption: 'Rename', icon: 'rename.png', action: this.renameItem.bind(this) }
+			{caption: 'Open', icon: 'open.png', tooltip: 'Open (⌘O)', action: this.openItem.bind(this) }
 		]);
 		
 		this.grid.cell(1,0).style.borderRight = '1px solid #ddd';
@@ -57,6 +56,15 @@ class LSQueryWindow extends ACController
 		this.listBox.classList.add('scriptlist');
 		this.listBox.setRearrangeable(true);
 		this.listBox.addEventListener('itemSelected', this.selectItem.bind(this));
+		this.listBox.addEventListener('itemAdded', e => {
+			var item = e.detail.item;
+			item.contextMenu = {
+				'Rename': this.renameItem.bind(this, item),
+				'Remove': this.removeItem.bind(this, item)
+			};
+			item.contextMenuScrollDismisser = this.listContainer;
+			item.addEventListener('contextmenu', ACContextMenu.open);
+		});
 		
 		var modeActionBar = new ACToolBar(this.grid.cell(2,0));
 		modeActionBar.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
@@ -88,9 +96,6 @@ class LSQueryWindow extends ACController
 		);
 		this.itemToolBar.addItem(
 			{caption: 'Export Queries', icon: 'export.png', action: this.exportPage.bind(this) }
-		);
-		this.itemToolBar.addItem(
-			{caption: 'Remove', icon: 'bin.png', action: this.removeItem.bind(this) }
 		);
 		this.itemToolBar.firstChild.firstChild.style.display = 'none';
 		
@@ -212,6 +217,7 @@ class LSQueryWindow extends ACController
 	{
 		switch (command) {
 			case 'new': this.createItem(); break;
+			case 'open': this.openItem(); break;
 			case 'save': this.saveItem(); break;
 			case 'enter': this.runQuery(); break;
 			case 'layout': this.resetLayout(); break;
@@ -285,20 +291,53 @@ class LSQueryWindow extends ACController
 		LSQueryWindow.counter++;
 	}
 	
-	renameItem()
+	openItem()
 	{
-		this.listBox.renameItem(this.listBox.activeItem);
+		var modal = new ACDialog(document.body);
+		modal.setTitle('Open Entry');
+		
+		var si = new ACSuggestiveInput(modal.contentCell);
+		
+		si.addEventListener('select', evt => {
+			this.listBox.selectItem(this.listBox.getItemsByNameBeginningWith(evt.detail.value)[0]);
+			modal.close();
+		});
+		
+		si.addEventListener('scan', evt => {
+			var items = this.listBox.getItemsByNameBeginningWith(evt.detail.value);
+			if (items.length == 1 || (items.length > 0 && items[0].dataset.id == evt.detail.value)) {
+				this.listBox.selectItem(items[0]);
+				modal.close();
+			} else if (items.length > 0) {
+				si.clearSuggestions();
+				items.forEach(item => {
+					si.addSuggestion(item.dataset.id);
+				});
+				si.showSuggestions();
+			} else {
+				si.clearSuggestions();
+			}
+		});
+		
+		modal.display();
 	}
 	
-	removeItem()
+	renameItem(item)
+	{
+		this.listBox.renameItem(item);
+	}
+	
+	removeItem(item)
 	{
 		var selectedItem = this.listBox.getSelectedItem();
-		if (selectedItem && confirm('Query page ' + selectedItem.dataset.id + ' will be removed.')) {
-			selectedItem.remove();
-			this.editor.session.setValue('', -1);
-			this.editor.setReadOnly(true);
-			this.editor.renderer.$cursorLayer.element.style.display = 'none';
-			this.resultContainer.clear();
+		if (item && confirm('Query page ' + item.dataset.id + ' will be removed.')) {
+			item.remove();
+			if (item == selectedItem) {
+				this.editor.session.setValue('', -1);
+				this.editor.setReadOnly(true);
+				this.editor.renderer.$cursorLayer.element.style.display = 'none';
+				this.resultContainer.clear();
+			}
 		}
 	}
 	
@@ -520,7 +559,7 @@ class LSQueryWindow extends ACController
 	
 	resetLayout()
 	{
-		this.info.listWidth = this.grid.cell(0,0).style.width = '16%';
+		this.info.listWidth = this.grid.cell(0,0).style.width = '260px';
 		this.info.editorHeight = this.itemGrid.cell(0,0).style.height = '50%';
 		this.togglePane(true);
 		this.toggleEditor(true);
