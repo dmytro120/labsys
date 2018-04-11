@@ -65,6 +65,7 @@ class ACContextMenu extends ACControl
 	
 	static open(e)
 	{
+		e.stopPropagation();
 		new ACContextMenu(null, e, e.target);
 		e.preventDefault();
 	}

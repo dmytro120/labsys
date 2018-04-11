@@ -65,6 +65,11 @@ class LSQueryWindow extends ACController
 			item.contextMenuScrollDismisser = this.listContainer;
 			item.addEventListener('contextmenu', ACContextMenu.open);
 		});
+		this.listBox.contextMenu = {
+			'Download All': this.exportAll.bind(this)
+		};
+		this.listBox.contextMenuScrollDismisser = this.listContainer;
+		this.listBox.addEventListener('contextmenu', ACContextMenu.open);
 		
 		var modeActionBar = new ACToolBar(this.grid.cell(2,0));
 		modeActionBar.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
@@ -103,6 +108,7 @@ class LSQueryWindow extends ACController
 		this.itemGrid.addSizer(0, AC_DIR_HORIZONTAL);
 		
 		var topCell = this.itemGrid.cell(0,0);
+		topCell.style.paddingTop = '6px';
 		this.editor = ace.edit(topCell);
 		this.editor.$blockScrolling = Infinity;
 		this.editor.setTheme("ace/theme/xcode");
@@ -209,7 +215,7 @@ class LSQueryWindow extends ACController
 	
 	onDetached()
 	{
-		this.saveItem();
+		this.saveCurrentItem();
 		this.resultContainerScrollTop = this.resultContainer.scrollTop;
 	}
 	
@@ -218,7 +224,7 @@ class LSQueryWindow extends ACController
 		switch (command) {
 			case 'new': this.createItem(); break;
 			case 'open': this.openItem(); break;
-			case 'save': this.saveItem(); break;
+			case 'save': this.saveCurrentItem(); break;
 			case 'enter': this.runQuery(); break;
 			case 'layout': this.resetLayout(); break;
 			case 'eof': this.exit(); break;
@@ -247,9 +253,19 @@ class LSQueryWindow extends ACController
 		var element = AC.create('a', this.rootNode);
 		element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(contents));
 		element.setAttribute('download', selectedItem.dataset.id + '.sql');
-		
 		element.style.display = 'none';
+		element.click();
+		element.remove();
+	}
+	
+	exportAll()
+	{
+		this.saveCurrentItem();
 		
+		var element = AC.create('a', this.rootNode);
+		element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.info.pages, null, '\t')));
+		element.setAttribute('download', this.constructor.name + '.json');
+		element.style.display = 'none';
 		element.click();
 		element.remove();
 	}
@@ -271,7 +287,7 @@ class LSQueryWindow extends ACController
 		this.editor.focus();
 	}
 	
-	saveItem()
+	saveCurrentItem()
 	{
 		var item = this.listBox.activeItem;
 		if (item) item.value = this.editor.getValue();

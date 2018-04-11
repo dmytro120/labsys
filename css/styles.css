@@ -103,6 +103,7 @@ ac-listbox.list-group { display: block; margin-bottom: 0px; height: 100%; border
 .list-group-item:focus { outline: none; }
 .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover { background-color: #d9d9d9; /*rgb(248, 248, 248)*/ color: inherit; border-color: inherit; }
 ac-listbox.indrag .list-group-item:active { background-color: inherit; }
+.scriptlist { padding-top: 6px; }
 .scriptlist .list-group-item:last-child { /*border-bottom: 1px solid #ddd*/ }
 
 /* ACBrowseDialog */
