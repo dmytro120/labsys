@@ -56,11 +56,12 @@ class LSSampleWindow extends ACController
 	
 	promptForSample()
 	{
-		var modal = new ACDialog(document.body);
-		modal.setTitle('Open Sample');
+		var modal = new ACModal(document.body);
+		modal.addHeader({ title: 'Open Sample', closeButton: true });
 		modal.searchQuery = '';
 		
-		var inputBox = new ACBrowseInput(modal.contentCell);
+		var contentCell = modal.addSection();
+		var inputBox = new ACBrowseInput(contentCell);
 		inputBox.style.width = '100%';
 		
 		inputBox.addEventListener('browse', evt => {
@@ -104,6 +105,7 @@ class LSSampleWindow extends ACController
 			});
 		});
 		
+		modal.addFooter();
 		modal.display();
 		inputBox.focus();
 	}

@@ -111,10 +111,11 @@ class LSImportWindow extends ACController
 	
 	setDBType()
 	{
-		var modal = new ACDialog(document.body);
-		modal.setTitle('DB Type');
+		var modal = new ACModal(document.body);
+		modal.addHeader({ title: 'DB Type', closeButton: true });
 		
-		var textInput = new ACListInput(modal.contentCell);
+		var contentCell = modal.addSection();
+		var textInput = new ACListInput(contentCell);
 		var dbTypes = {
 			'ORACLE': ORACLE,
 			'MSSQL': MSSQL
@@ -123,7 +124,6 @@ class LSImportWindow extends ACController
 			var o = textInput.addOption(name, dbTypes[name]);
 			if (dbTypes[name] == this.info.dbType) o.selected = true;
 		}
-		textInput.focus();
 		
 		var handler = e => {
 			this.info.dbType = parseInt(textInput.value);
@@ -133,7 +133,9 @@ class LSImportWindow extends ACController
 		modal.addEventListener('close', handler);
 		textInput.addEventListener('enter', e => modal.close());
 		
+		modal.addFooter();
 		modal.display();
+		textInput.focus();
 	}
 	
 	setQuotes()
@@ -146,12 +148,12 @@ class LSImportWindow extends ACController
 	
 	setTables(infoKey)
 	{
-		var modal = new ACDialog(document.body);
-		modal.setTitle(infoKey);
+		var modal = new ACModal(document.body);
+		modal.addHeader({ title: infoKey, closeButton: true });
 		
-		var textInput = new ACTextInput(modal.contentCell);
+		var contentCell = modal.addSection();
+		var textInput = new ACTextInput(contentCell);
 		textInput.value = this.info[infoKey].join(', ');
-		textInput.focus();
 		
 		var handler = e => {
 			var tablesString = textInput.value.replace(/\s/g, '');
@@ -162,22 +164,28 @@ class LSImportWindow extends ACController
 		modal.addEventListener('close', handler);
 		textInput.addEventListener('enter', e => modal.close());
 		
+		modal.addFooter();
 		modal.display();
+		textInput.focus();
 	}
 	
 	setRules(varName)
 	{
-		var modal = new ACDialog(document.body);
-		modal.setTitle(varName);
-		modal.contentCell.style.height = '400px';
+		var modal = new ACModal(document.body);
+		modal.addHeader({ title: varName, closeButton: true });
 		
-		var errorCell = new ACStaticCell(modal.footerCell);
+		var contentCell = modal.addSection();
+		contentCell.style.height = '400px';
+		
+		var footerCell = modal.addFooter();
+		
+		var errorCell = new ACStaticCell(footerCell);
 		errorCell.style.color = 'red';
 		errorCell.textContent = '\u00a0';
-		modal.footerCell.style.padding = '6px 15px';
+		footerCell.style.padding = '6px 15px';
 		errorCell.style.textAlign = 'left';
 		
-		var editor = ace.edit(modal.contentCell);
+		var editor = ace.edit(contentCell);
 		editor.$blockScrolling = Infinity;
 		editor.setTheme("ace/theme/xcode");
 		editor.getSession().setMode("ace/mode/json");
@@ -191,7 +199,6 @@ class LSImportWindow extends ACController
 			JSON.stringify(this.info[varName], null, '\t') : 
 			''
 		);
-		editor.focus();
 		editor.getSession().on('change', e => {
 			errorCell.textContent = '\u00a0';
 		});
@@ -211,6 +218,7 @@ class LSImportWindow extends ACController
 		});
 		
 		modal.display();
+		editor.focus();
 	}
 	
 	killQueue()

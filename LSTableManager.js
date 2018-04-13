@@ -449,10 +449,11 @@ class LSTableManager extends ACController
 	
 	openItem()
 	{
-		var modal = new ACDialog(document.body);
-		modal.setTitle('Open Entry');
+		var modal = new ACModal(document.body);
+		modal.addHeader({ title: 'Open Entry', closeButton: true });
 		
-		var si = new ACSuggestiveInput(modal.contentCell);
+		var contentCell = modal.addSection();
+		var si = new ACSuggestiveInput(contentCell);
 		
 		si.addEventListener('select', evt => {
 			this.listBox.selectItem(this.listBox.getItemsByNameBeginningWith(evt.detail.value)[0]);
@@ -475,7 +476,9 @@ class LSTableManager extends ACController
 			}
 		});
 		
+		modal.addFooter();
 		modal.display();
+		si.focus();
 	}
 	
 	browseLinkedItem(itemInfo, evt)

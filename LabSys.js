@@ -175,18 +175,17 @@ class LabSys
 	{
 		// Basic Modal Setup with header, content cell, and footer
 		var modal = new ACModal(document.body);
-		modal.contentArea.style.borderRadius = '0';
 		
-		var mh = new ACStaticCell(modal.contentArea);
-		mh.classList.add('modal-header');
-		mh.style.padding = '0';
+		var header = modal.addHeader();
+		header.style.padding = '0';
 		
-		var contentCell = new ACStaticCell(modal.contentArea);
-		contentCell.classList.add('modal-body');
-		contentCell.style.padding = '0';
+		var contentCell = modal.addSection();
+		
+		var footer = modal.addSection();
+		footer.style.padding = '0';
 		
 		// Radio Bar
-		var radioBar = new ACToolBar(mh, { type: 'primary' });
+		var radioBar = new ACToolBar(header, { type: 'primary' });
 		radioBar.setRadio(true);
 		
 		// Modes Sheet
@@ -194,13 +193,12 @@ class LabSys
 		var lastActiveSheet = modesSheet;
 		
 		var modeBtn = radioBar.addItem({
-			caption: 'Modes', icon: 'switch.png', targetNode: modesSheet
+			caption: 'Modes', icon: 'switch.png', targetNode: modesSheet, action: e => footer.style.display = 'block'
 		});
 		radioBar.setActiveItem(modeBtn);
 		
 		var notice = new ACStaticCell(modesSheet);
 		notice.textContent = 'No modes instantiated';
-		notice.style.padding = '12px';
 		
 		if (Object.keys(this.modes).length > 0) {
 			notice.style.display = 'none';
@@ -215,7 +213,7 @@ class LabSys
 			}
 		}
 		
-		var modesToolbar = new ACToolBar(modesSheet, { type: 'secondary' });
+		var modesToolbar = new ACToolBar(footer, { type: 'secondary' });
 		modesToolbar.setStyle(ST_BORDER_BOTTOM);
 		modesToolbar.style.borderTop = '1px solid #ddd';
 		
@@ -253,10 +251,9 @@ class LabSys
 		
 		// About Sheet
 		var aboutSheet = new ACStaticCell(contentCell);
-		aboutSheet.style.padding = '12px';
 		aboutSheet.style.display = 'none';
 		var aboutBtn = radioBar.addItem({
-			caption: 'About', icon: 'info.png', targetNode: aboutSheet
+			caption: 'About', icon: 'info.png', targetNode: aboutSheet, action: e => footer.style.display = 'none'
 		});
 		
 		var hCell = new ACStaticCell(aboutSheet);

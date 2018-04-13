@@ -1,6 +1,6 @@
 'use strict';
 
-class ACBrowseDialog extends ACDialog
+class ACBrowseDialog extends ACModal
 {
 	constructor(parentNode)
 	{
@@ -8,7 +8,11 @@ class ACBrowseDialog extends ACDialog
 		
 		this.searchQuery = '';
 		
+		this.addHeader({closeButton: true});
+		this.contentCell = this.addSection();
 		this.contentCell.style.padding = '0';
+		
+		this.addFooter();
 		
 		var headerTable = AC.create('table', this.contentCell);
 		headerTable.classList.add('table', 'table-bordered');
@@ -101,8 +105,8 @@ class ACBrowseDialog extends ACDialog
 	
 	display()
 	{
-		this.updateHeadings();
 		super.display();
+		this.updateHeadings();
 	}
 	
 	processKey(evt)

@@ -1,6 +1,6 @@
 'use strict';
 
-class ACSelectDialog extends ACDialog
+class ACSelectDialog extends ACModal
 {
 	constructor(parentNode)
 	{
@@ -8,9 +8,13 @@ class ACSelectDialog extends ACDialog
 		
 		this.searchQuery = '';
 		
+		this.addHeader({closeButton: true});
+		this.contentCell = this.addSection();
 		this.contentCell.style.maxHeight = '400px';
 		this.contentCell.style.overflow = 'auto';
 		this.contentCell.style.padding = '0';
+		
+		this.addFooter();
 		
 		this.lb = new ACListBox(this.contentCell);
 		

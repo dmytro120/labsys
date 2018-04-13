@@ -6,33 +6,85 @@ class ACModal extends ACControl
 	{
 		super(parentNode);
 		
-		this.style.display = 'block';
-		this.classList.add('modal');
+		this.style.display = 'none';
+		this.classList.add('modal', 'in');
 		this.setAttribute('tabindex', '0');
+		this.addEventListener('click', this.close.bind(this));
 		
-		this.md = new ACStaticCell(this);
-		this.md.classList.add('modal-dialog');
+		this.backDrop = new ACStaticCell(parentNode);
+		this.backDrop.classList.add('modal-backdrop', 'in');
+		this.backDrop.style.display = 'none';
 		
-		this.contentArea = new ACStaticCell(this.md);
+		var dialog = new ACStaticCell(this);
+		dialog.classList.add('modal-dialog');
+		
+		this.contentArea = new ACStaticCell(dialog);
 		this.contentArea.classList.add('modal-content');
 		
-		this.bsSelector = new window.BSModal(this, {duration: 1});
+		this.escapeListener = e => {
+			if (e.which == 27) this.close();
+		};
+		document.addEventListener('keydown', this.escapeListener);
+	}
+	
+	addHeader(params = {})
+	{
+		var header = new ACStaticCell(this.contentArea);
+		header.classList.add('modal-header');
 		
-		this.bsSelector.modal.addEventListener('hidden.bs.modal', evt => {
-			var cancelled = !this.dispatchEvent(new CustomEvent('close', {cancelable: true}));
-			if (cancelled) evt.preventDefault();
-			else this.remove();
-		});
+		if ('closeButton' in params && params.closeButton) {
+			var cb1 = AC.create('button', header);
+			cb1.setAttribute('type', 'button');
+			cb1.classList.add('close');
+			cb1.dataset.dismiss = 'modal';
+			cb1.textContent = '×';
+		}
+		
+		this.titleCtrl = AC.create('h4', header);
+		this.titleCtrl.classList.add('modal-title');
+		if ('title' in params) this.titleCtrl.textContent = params.title;
+		
+		return header;
+	}
+	
+	setTitle(title)
+	{
+		if (this.titleCtrl) this.titleCtrl.textContent = title;
+	}
+	
+	addSection()
+	{
+		var section = new ACStaticCell(this.contentArea);
+		section.classList.add('modal-body');
+		return section;
+	}
+	
+	addFooter()
+	{
+		var footer = new ACStaticCell(this.contentArea);
+		footer.classList.add('modal-footer');
+		return footer;
+	}
+	
+	setWidth(width)
+	{
+		this.contentArea.parentElement.style.width = width;
 	}
 	
 	display()
 	{
-		this.bsSelector.open();
+		this.style.display = this.backDrop.style.display = 'block';
 	}
 	
-	close()
+	close(e)
 	{
-		this.bsSelector.close();
+		if (e && e.target != this && e.target.dataset.dismiss != 'modal') return;
+		var cancelled = !this.dispatchEvent(new CustomEvent('close', {cancelable: true}));
+		if (!cancelled) {
+			document.removeEventListener('keydown', this.escapeListener);
+			this.remove();
+			this.backDrop.remove();
+		}
 	}
 }
 
