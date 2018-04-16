@@ -14,7 +14,7 @@ class DB
 		xhr.addEventListener('abort', this.onAbort.bind(this, xhr));
 		
 		if (query.slice(-1) != '/') query = encodeURIComponent(query);
-		xhr.open('GET', 'http://localhost:7000' + '/' + query);
+		xhr.open('GET', DB.host + '/' + query);
 		xhr.send();
 	}
 	
@@ -67,5 +67,12 @@ class DB
 		};
 		return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
 	}
+	
+	static setHost(host)
+	{
+		DB.host = host;
+		localStorage.setItem('LSDBHost', host);
+	}
 }
+DB.host = localStorage.getItem('LSDBHost') || 'http://localhost:7000';
 DB.XHRs = [];

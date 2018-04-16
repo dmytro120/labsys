@@ -249,6 +249,15 @@ class LabSys
 			} 
 		});
 		
+		// LDBC Sheet
+		var ldbcSheet = new ACStaticCell(contentCell);
+		ldbcSheet.style.display = 'none';
+		var aboutBtn = radioBar.addItem({
+			caption: 'LDBC', icon: 'db.png', targetNode: ldbcSheet, action: e => footer.style.display = 'none'
+		});
+		var hostCtrl = new ACTextInput(ldbcSheet);
+		hostCtrl.value = DB.host;
+		
 		// About Sheet
 		var aboutSheet = new ACStaticCell(contentCell);
 		aboutSheet.style.display = 'none';
@@ -266,6 +275,10 @@ class LabSys
 		var a = AC.create('a', aboutSheet);
 		a.target = '_blank';
 		a.href = a.textContent = 'http://dmytro.malikov.us/labsys/';
+		
+		modal.addEventListener('close', e => {
+			DB.setHost(hostCtrl.value);
+		});
 		
 		modal.display();
 	}
