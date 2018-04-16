@@ -4,6 +4,7 @@ html, body { height: 100%; overflow: hidden; /* for popovers */ }
 	font-family: FuturaO;
 	src: url(../fonts/ff.ttf);
 }
+/* top right bottom left */
 
 /* ACFlexGrid */
 ac-flexgrid { display: table; width: 100%; height: 100%; table-layout: fixed; }
@@ -29,10 +30,15 @@ ac-notebook .btn-group { margin-left: 12px; margin-top: 12px; }
 .pager .btn:hover{border-color:rgb(221, 221, 221);}
 
 /* ACKeyValueView */
-.KeyValueView { margin: 0px auto; width: auto; }
-.KeyValueView tr:first-child th, .KeyValueView tr:first-child td { border-top: 0}
-.KeyValueView>tbody>tr>td, .KeyValueView>tbody>tr>th, .KeyValueView>tfoot>tr>td, .KeyValueView>tfoot>tr>th, .KeyValueView>thead>tr>td, .KeyValueView>thead>tr>th { vertical-align: middle; }
-.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th { border-top: 0px; padding: 4px;  }
+ac-keyvalueview .header { background-color: rgb(248,248,248); margin: 12px 12px 4px; padding: 4px 8px; font-weight: bold; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; }
+ac-keyvalueview .table-container { column-count: 2; margin-bottom: 24px; }
+ac-keyvalueview .table-container > table { margin: 0px auto; width: auto; }
+ac-keyvalueview .table-container > table>tbody>tr>td, 
+	ac-keyvalueview .table-container > table>tbody>tr>th, 
+	ac-keyvalueview .table-container > table>tfoot>tr>td, 
+	ac-keyvalueview .table-container > table>tfoot>tr>th, 
+	ac-keyvalueview .table-container > table>thead>tr>td, 
+	ac-keyvalueview .table-container > table>thead>tr>th { vertical-align: middle; }
 .unbreakable {
 -webkit-column-break-inside: avoid;
           page-break-inside: avoid;
@@ -94,6 +100,7 @@ ac-flexgrid .ace_scroller { /*border-bottom: 1px solid #ddd;*/ }
 /* Bootstrap Fix */
 .glyphicon { top: 0px; }
 .btn:focus { outline: none; }
+.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th { border-top: 0px; padding: 4px;  }
 
 /* ACListBox */
 ac-listbox.list-group { display: block; margin-bottom: 0px; height: 100%; border-color: #ddd; border-style: solid; border-width: 0px; }

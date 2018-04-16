@@ -12,7 +12,7 @@ class ACBrowseDialog extends ACModal
 		this.contentCell = this.addSection();
 		this.contentCell.style.padding = '0';
 		
-		this.addFooter();
+		this.footerCell = this.addFooter();
 		
 		var headerTable = AC.create('table', this.contentCell);
 		headerTable.classList.add('table', 'table-bordered');

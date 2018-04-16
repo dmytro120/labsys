@@ -2,46 +2,34 @@
 
 class ACKeyValueView extends ACControl
 {
-	constructor(parentNode)
+	constructor(parentNode, params = {})
 	{
 		super(parentNode);
-		this.groups = {};
 		this.controls = [];
-	}
-	
-	getOrCreateGroupNamed(groupName)
-	{
-		if (groupName in this.groups) return this.groups[groupName];
 		
-		// Group header
-		var groupHeader = new ACStaticCell(this);
-		//groupHeader.style.backgroundColor = 'rgb(176, 234, 231)';
-		groupHeader.style.margin = '0px 12px';
-		groupHeader.style.padding = '4px 8px';
-		groupHeader.style.fontWeight = 'bold';
-		groupHeader.style.borderTop = '1px solid #ddd';
-		groupHeader.style.borderBottom = '1px solid #ddd';
-		groupHeader.style.marginBottom = '4px';
-		groupHeader.textContent = (groupName != 'null' ? groupName : 'Summary');
+		this.header = new ACStaticCell(this);
+		this.header.classList.add('header');
+		this.header.style.display = 'none';
+		if ('caption' in params) this.setTitle(params.caption);
 		
 		var tableContainer = new ACStaticCell(this);
-		tableContainer.style.columnCount = '2';
-		tableContainer.style.marginBottom = '12px';
+		tableContainer.classList.add('table-container');
 		
 		var table = AC.create('table', tableContainer);
-		table.classList.add('table', 'KeyValueView');
+		table.classList.add('table');
 		
-		var tbody = AC.create('tbody', table);
-		this.groups[groupName] = tbody;
-		
-		return tbody;
+		this.tbody = AC.create('tbody', table);
 	}
 	
-	addField(groupName, key)
+	setTitle(title)
 	{
-		var group = this.getOrCreateGroupNamed(groupName);
-		
-		var row = AC.create('tr', group);
+		this.header.textContent = title;
+		this.header.style.display = 'block';
+	}
+	
+	addField(key)
+	{
+		var row = AC.create('tr', this.tbody);
 		row.classList.add('unbreakable');
 		
 		var th = AC.create('th', row);

@@ -32,6 +32,7 @@ class ACBrowseInput extends ACInput
 		var searchBtn = AC.create('a', span);
 		searchBtn.classList.add('btn', 'btn-sm', 'btn-default');
 		searchBtn.textContent = '🔍';//'…';
+		searchBtn.style.fontFamily = 'Segoe UI Symbol';
 		searchBtn.style.fontSize = '18px';
 		searchBtn.style.padding = '1px 5px 0px 5px';
 		searchBtn.style.borderRadius = '0';

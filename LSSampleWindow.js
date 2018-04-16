@@ -173,9 +173,9 @@ class LSSampleWindow extends ACController
 			", schemaRows => {
 				objects.forEach(object => {
 					this.infoPane.clear();
-					var kvv = new ACKeyValueView(this.infoPane);
+					var kvv = new ACKeyValueView(this.infoPane, { caption: type + ' ' + objectNo });
 					for (var s = 0; s < schemaRows.length; s++) {
-						var field = kvv.addField(type + ' ' + objectNo, schemaRows[s].field_label ? schemaRows[s].field_label : schemaRows[s].field_name);
+						var field = kvv.addField(schemaRows[s].field_label ? schemaRows[s].field_label : schemaRows[s].field_name);
 						var value = object[schemaRows[s].field_name.toLowerCase()] ? object[schemaRows[s].field_name.toLowerCase()] : '';
 						switch (schemaRows[s].data_type) {
 							case 'Boolean':

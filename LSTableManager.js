@@ -189,17 +189,23 @@ class LSTableManager extends ACController
 				sc.style.color = 'red';
 				return;
 			}
-			DB.query("\
-				SELECT fm.field_name, fm.link_table, ltm.key_fields, ltm.description_fields, fm.data_type, fm.hidden, fm.list_key, \
-					(CASE WHEN ft.field_name IS NOT NULL THEN 'T' ELSE 'F' END) FT_EXISTS, ft.group_title, ft.field_label \
-				FROM field_master fm \
-				LEFT JOIN table_template tt ON tt.template_table = fm.table_name AND tt.removed = 'F' \
-				LEFT JOIN table_temp_fields ft ON tt.name = ft.template AND fm.field_name = ft.field_name AND ft.entry_mode = 'USERENTRY' \
-				LEFT JOIN table_master ltm ON ltm.name = fm.link_table \
-				WHERE fm.table_name = '" + this.itemType + "' AND fm.hidden = 'F' AND fm.field_name NOT IN ('NAME', 'CHANGED_BY', 'CHANGED_ON', 'REMOVED') \
-				ORDER BY (CASE WHEN ft.group_title IS NULL THEN 0 ELSE 1 END), ft.group_title, ft.order_number \
-			", schemaRows => {
+			DB.query(`
+				SELECT fm.field_name, fm.link_table, ltm.key_fields, ltm.description_fields, fm.data_type, fm.hidden, fm.list_key, 
+					(CASE WHEN ft.field_name IS NOT NULL THEN 'T' ELSE 'F' END) FT_EXISTS, ft.group_title, ft.field_label 
+				FROM field_master fm 
+				LEFT JOIN table_template tt ON tt.template_table = fm.table_name AND tt.removed = 'F' 
+				LEFT JOIN table_temp_fields ft ON tt.name = ft.template AND fm.field_name = ft.field_name AND ft.entry_mode = 'USERENTRY' 
+				LEFT JOIN table_master ltm ON ltm.name = fm.link_table 
+				WHERE fm.table_name = '${this.itemType}' AND fm.hidden = 'F' AND fm.field_name NOT IN ('NAME', 'CHANGED_BY', 'CHANGED_ON', 'REMOVED') 
+				ORDER BY (CASE WHEN ft.group_title IS NULL THEN 0 ELSE 1 END), ft.group_title, ft.order_number 
+			`, schemaRows => {
 				if (Array.from(this.grid.cell(0,1).children).length > 1) this.grid.cell(0,1).lastChild.remove();
+				
+				var groupedSchemaRows = schemaRows.reduce((arr, x) => {
+					if (!arr[x.group_title]) arr[x.group_title] = [];
+					arr[x.group_title].push(x);
+					return arr;
+				}, {});
 				
 				// Item Info and Details FlexGrid
 				var itemInfoAndDetailsGrid = new ACFlexGrid(this.grid.cell(0,1), { rowHeights:['40px', 'auto'], colWidths:['100%'] });
@@ -294,78 +300,83 @@ class LSTableManager extends ACController
 				ifp.style.overflow = 'auto';
 				
 				// Item Details KeyValueView
-				this.kvv = new ACKeyValueView(ifp);
+				//this.kvv = new ACKeyValueView(ifp);
 				
-				for (var s = 0; s < schemaRows.length; s++) {
-					var groupTitle = schemaRows[s].ft_exists == 'T' && schemaRows[s].group_title != null ? schemaRows[s].group_title : 'Summary';
-					var field = this.kvv.addField(groupTitle, schemaRows[s].field_label ? schemaRows[s].field_label : schemaRows[s].field_name);
-					var value = rows[0][schemaRows[s].field_name.toLowerCase()] ? rows[0][schemaRows[s].field_name.toLowerCase()] : '';
-					switch (schemaRows[s].data_type) {
-						case 'Boolean':
-							var control = new ACOnOffSwitch(field);
-							control.name = schemaRows[s].field_name;
-							control.value = (value == 'T');
-						break;
-						case 'List':
-							if (schemaRows[s].list_key) {
-								var control = new ACListInput(field);
-								control.firstChild.style.maxWidth = '199px';
+				for (var groupName in groupedSchemaRows) {
+					var schemaRows = groupedSchemaRows[groupName];
+					var kvv = new ACKeyValueView(ifp, { caption: groupName != 'null' ? groupName : 'Summary' });
+					
+					for (var s = 0; s < schemaRows.length; s++) {
+						//var groupTitle = schemaRows[s].ft_exists == 'T' && schemaRows[s].group_title != null ? schemaRows[s].group_title : 'Summary';
+						var field = kvv.addField(schemaRows[s].field_label ? schemaRows[s].field_label : schemaRows[s].field_name);
+						var value = rows[0][schemaRows[s].field_name.toLowerCase()] ? rows[0][schemaRows[s].field_name.toLowerCase()] : '';
+						switch (schemaRows[s].data_type) {
+							case 'Boolean':
+								var control = new ACOnOffSwitch(field);
 								control.name = schemaRows[s].field_name;
-								DB.query("\
-									SELECT name, value \
-									FROM list_entry \
-									WHERE list = '" + schemaRows[s].list_key + "' \
-									ORDER BY 1",
-								function (listEntries, x, extra) {
-									extra.control.addOption('', '');
-									listEntries.forEach(entry => {
-										var o = extra.control.addOption(entry.value, entry.name);
-										if (entry.name == extra.value) o.selected = true;
+								control.value = (value == 'T');
+							break;
+							case 'List':
+								if (schemaRows[s].list_key) {
+									var control = new ACListInput(field);
+									control.firstChild.style.maxWidth = '199px';
+									control.name = schemaRows[s].field_name;
+									DB.query("\
+										SELECT name, value \
+										FROM list_entry \
+										WHERE list = '" + schemaRows[s].list_key + "' \
+										ORDER BY 1",
+									function (listEntries, x, extra) {
+										extra.control.addOption('', '');
+										listEntries.forEach(entry => {
+											var o = extra.control.addOption(entry.value, entry.name);
+											if (entry.name == extra.value) o.selected = true;
+										});
+									}, null, null, {
+										control: control,
+										value: value
 									});
-								}, null, null, {
-									control: control,
-									value: value
-								});
-								break;
-							}
-						case 'Text':
-						case 'Integer':
-						default:
-							// Marvin Experimental Implementation START
-							if (schemaRows[s].field_name == 'STRUCTURE' && this.marvinExporter) {
-								var control = new ACStaticCell(field);
-								control.name = schemaRows[s].field_name;
-								control.value = value;
-								this.marvinExporter.render(value).then(pngData => {
-									field.previousSibling.style.lineHeight = '200px';
-									var img = AC.create('img', control);
-									img.src = pngData;
-									img.style.display = 'inline';
-								}, bad => {
-									var info = AC.create('span', control);
-									info.style.color = 'red';
-									info.textContent = 'not renderable mol string';
-								});
-							}
-							// Marvin Experimental Implementation END
-							else if (!schemaRows[s].link_table) {
-								var control = schemaRows[s].data_type == 'Integer' ? new ACNumberInput(field) : new ACTextInput(field);
-								control.name = schemaRows[s].field_name;
-								control.value = value;
-							} else {
-								var control = new ACBrowseInput(field);
-								control.name = schemaRows[s].field_name;
-								control.value = value;
-								control.table = schemaRows[s].link_table;
-								control.mainKeyField = schemaRows[s].key_fields.split(' ')[0];
-								control.addEventListener('focusout', this.verifyField.bind(this));
-								control.addEventListener('browse', this.browseLinkedItem.bind(this, {
-									type: schemaRows[s].link_table, 
-									keyFields: schemaRows[s].key_fields, 
-									descFields:schemaRows[s].description_fields.trim()
-								}));
-							}
-						break;
+									break;
+								}
+							case 'Text':
+							case 'Integer':
+							default:
+								// Marvin Experimental Implementation START
+								if (schemaRows[s].field_name == 'STRUCTURE' && this.marvinExporter) {
+									var control = new ACStaticCell(field);
+									control.name = schemaRows[s].field_name;
+									control.value = value;
+									this.marvinExporter.render(value).then(pngData => {
+										field.previousSibling.style.lineHeight = '200px';
+										var img = AC.create('img', control);
+										img.src = pngData;
+										img.style.display = 'inline';
+									}, bad => {
+										var info = AC.create('span', control);
+										info.style.color = 'red';
+										info.textContent = 'not renderable mol string';
+									});
+								}
+								// Marvin Experimental Implementation END
+								else if (!schemaRows[s].link_table) {
+									var control = schemaRows[s].data_type == 'Integer' ? new ACNumberInput(field) : new ACTextInput(field);
+									control.name = schemaRows[s].field_name;
+									control.value = value;
+								} else {
+									var control = new ACBrowseInput(field);
+									control.name = schemaRows[s].field_name;
+									control.value = value;
+									control.table = schemaRows[s].link_table;
+									control.mainKeyField = schemaRows[s].key_fields.split(' ')[0];
+									control.addEventListener('focusout', this.verifyField.bind(this));
+									control.addEventListener('browse', this.browseLinkedItem.bind(this, {
+										type: schemaRows[s].link_table, 
+										keyFields: schemaRows[s].key_fields, 
+										descFields:schemaRows[s].description_fields.trim()
+									}));
+								}
+							break;
+						}
 					}
 				}
 				
