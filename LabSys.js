@@ -195,7 +195,6 @@ class LabSys
 		var modeBtn = radioBar.addItem({
 			caption: 'Modes', icon: 'switch.png', targetNode: modesSheet, action: e => footer.style.display = 'block'
 		});
-		radioBar.setActiveItem(modeBtn);
 		
 		var notice = new ACStaticCell(modesSheet);
 		notice.textContent = 'No modes instantiated';
@@ -287,7 +286,16 @@ class LabSys
 		a.target = '_blank';
 		a.href = a.textContent = 'http://dmytro.malikov.us/labsys/';
 		
+		var activeItem = radioBar.firstChild.children[this.lastPreferenceItemID || 0];
+		radioBar.setActiveItem(activeItem);
+		if (activeItem.firstChild.action) activeItem.firstChild.action();
 		modal.addEventListener('close', e => {
+			for (var i = 0; i < radioBar.firstChild.children.length; i++) {
+				if (radioBar.firstChild.children[i].classList.contains('active')) {
+					this.lastPreferenceItemID = i;
+					break;
+				}
+			}
 			DB.setHost(hostCtrl.value);
 		});
 		
