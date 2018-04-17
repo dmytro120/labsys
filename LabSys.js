@@ -256,6 +256,17 @@ class LabSys
 			caption: 'LDBC', icon: 'db.png', targetNode: ldbcSheet, action: e => footer.style.display = 'none'
 		});
 		var hostCtrl = new ACTextInput(ldbcSheet);
+		hostCtrl.style.marginBottom = '12px';
+		var buttonContainer = new ACStaticCell(ldbcSheet);
+		var remoteBtn = AC.create('button', buttonContainer);
+		remoteBtn.classList.add('btn', 'btn-default', 'btn-sm');
+		remoteBtn.style.marginRight = '12px';
+		remoteBtn.textContent = 'Remote';
+		remoteBtn.onclick = () => hostCtrl.value = DB.defaultHost(false);
+		var localBtn = AC.create('button', buttonContainer);
+		localBtn.classList.add('btn', 'btn-default', 'btn-sm');
+		localBtn.textContent = 'Local';
+		localBtn.onclick = () => hostCtrl.value = DB.defaultHost(true);
 		hostCtrl.value = DB.host;
 		
 		// About Sheet

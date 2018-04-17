@@ -5,6 +5,7 @@ class ACTextInput extends ACInput
 	constructor(parentNode)
 	{
 		super(parentNode);
+		this.style.display = 'block';
 		
 		this.inputBox = AC.create('input', this);
 		this.inputBox.type = 'text';

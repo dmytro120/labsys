@@ -68,11 +68,16 @@ class DB
 		return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
 	}
 	
+	static defaultHost(isLocal)
+	{
+		return isLocal ? 'http://localhost:7000' : 'http://ldbc.ls.malikov.us';
+	}
+	
 	static setHost(host)
 	{
 		DB.host = host;
 		localStorage.setItem('LSDBHost', host);
 	}
 }
-DB.host = localStorage.getItem('LSDBHost') || 'http://localhost:7000';
+DB.host = localStorage.getItem('LSDBHost') || DB.defaultHost(true);
 DB.XHRs = [];
