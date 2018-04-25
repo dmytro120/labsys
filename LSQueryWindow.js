@@ -523,7 +523,8 @@ class LSQueryWindow extends ACController
 				
 				var headerRow = [];
 				for (var m = 0; m < colInfo[d].length; m++) {
-					headerRow.push(colInfo[d][m]);
+					let caption = colInfo[d][m] != colInfo[d][m].toLowerCase() ? colInfo[d][m] : colInfo[d][m].toUpperCase();
+					headerRow.push(caption);
 				}
 				data.push(headerRow);
 				

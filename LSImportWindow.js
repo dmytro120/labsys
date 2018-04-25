@@ -5,6 +5,7 @@ const UPDATE_CLAUSE = 2;
 
 const ORACLE = 1;
 const MSSQL = 2;
+const MYSQL = 4;
 
 class LSImportWindow extends ACController
 {
@@ -51,7 +52,8 @@ class LSImportWindow extends ACController
 			{caption: 'Set Do Only Tables', icon: 'select.png', action: this.setTables.bind(this, 'doOnlyTables') },
 			{caption: 'Set Defaults', icon: 'defaults.png', action: this.setRules.bind(this, 'tableDefaults') },
 			{caption: 'Set Composite Parent IDs', icon: 'hierarchy.png', action: this.setRules.bind(this, 'tableCompositeParentIDs') },
-			{caption: 'Kill Queue', icon: 'kill.png', action: this.killQueue.bind(this) }
+			{caption: 'Kill Queue', icon: 'kill.png', action: this.killQueue.bind(this) },
+			{caption: 'Clear Unchanged', icon: 'clear.png', action: this.clearUnchanged.bind(this) }
 		]);
 		
 		var fileNameCtrl = new ACStaticCell(tb);
@@ -118,7 +120,8 @@ class LSImportWindow extends ACController
 		var textInput = new ACListInput(contentCell);
 		var dbTypes = {
 			'ORACLE': ORACLE,
-			'MSSQL': MSSQL
+			'MSSQL': MSSQL,
+			'MYSQL': MYSQL
 		};
 		for (var name in dbTypes) {
 			var o = textInput.addOption(name, dbTypes[name]);
@@ -141,8 +144,8 @@ class LSImportWindow extends ACController
 	setQuotes()
 	{
 		this.quot = {
-			L: this.info.dbType == ORACLE ? '"' : '[',
-			R: this.info.dbType == ORACLE ? '"' : ']'
+			L: this.info.dbType == ORACLE ? '"' : this.info.dbType == MYSQL ? '`' : '[',
+			R: this.info.dbType == ORACLE ? '"' : this.info.dbType == MYSQL ? '`' : ']'
 		};
 	}
 	
@@ -290,7 +293,7 @@ class LSImportWindow extends ACController
 			WHERE name IN('" + tableNames.join("','") + "')", 
 		rows => {
 			rows.forEach(row => {
-				this.tableKeyFields[row.name] = row.key_fields.split(' ');
+				this.tableKeyFields[row.name] = row.key_fields.trim().split(' ');
 				this.tableIsChangeTracked[row.name] = row.extra == 2;
 			});
 			this.readEntries();
@@ -392,6 +395,13 @@ class LSImportWindow extends ACController
 					
 					this.tableKeys[tableName].forEach(key => {
 						var td = AC.create('td', htmlRow);
+						
+						// standardise line breaks
+						if (typeof entry[key] == 'string') entry[key] = entry[key].replace(/\r/g, '');
+						if (oldRecord && key in oldRecord && typeof oldRecord[key.toLowerCase()] == 'string') 
+							oldRecord[key.toLowerCase()] = oldRecord[key.toLowerCase()].replace(/\r/g, '');
+						
+						// are values same?
 						if (oldRecord && entry[key] != oldRecord[key.toLowerCase()]) {
 							changed = true;
 							td.style.backgroundColor = 'yellow';
@@ -406,7 +416,10 @@ class LSImportWindow extends ACController
 					this.outputArea.scrollTop = this.outputArea.scrollHeight;
 					
 					// Controls
-					if (!changed) return;
+					if (!changed) {
+						htmlRow.classList.add('unchanged');
+						return;
+					}
 					var ctrlCell = AC.create('td', htmlRow);
 					var labelCtrl = AC.create('label', ctrlCell);
 					labelCtrl.style.fontWeight = 'bold';
@@ -503,5 +516,12 @@ class LSImportWindow extends ACController
 				isInsert == INSERT_CLAUSE ? "(" + quot.L + fieldNames.join(quot.R + ", " + quot.L) + quot.R + ")\r\nVALUES (" + bits.join(", ") + ")":
 				bits.join(", ")
 			);
+	}
+	
+	clearUnchanged()
+	{
+		this.outputArea.querySelectorAll('.unchanged').forEach(node => {
+			node.remove();
+		});
 	}
 }
