@@ -509,7 +509,6 @@ class LSQueryWindow extends ACController
 	generateXLSX(datasets, colInfo, outputFileName)
 	{
 		function Workbook() {
-			if(!(this instanceof Workbook)) return new Workbook();
 			this.SheetNames = [];
 			this.Sheets = {};
 		}

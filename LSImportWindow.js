@@ -23,14 +23,14 @@ class LSImportWindow extends ACController
 		catch (e) {}
 		
 		// Set Quotes
-		if (!('dbType' in this.info) || ![ORACLE, MSSQL].includes(this.info.dbType)) this.info.dbType = ORACLE;
+		if (!('dbType' in this.info) || ![ORACLE, MSSQL, MYSQL].includes(this.info.dbType)) this.info.dbType = ORACLE;
 		this.setQuotes();
 		
 		// Table Presets & Defaults & Composite Parents
 		if (!('skipTables' in this.info) || !Array.isArray(this.info.skipTables)) this.info.skipTables = [];
 		if (!('doOnlyTables' in this.info) || !Array.isArray(this.info.doOnlyTables)) this.info.doOnlyTables = [];
 		if (!('tableDefaults' in this.info)) this.info.tableDefaults = {};
-		if (!('tableCompositeParentIDs' in this.info)) this.info.tableCompositeParentIDs = {};
+		if (!('tableCompositeIDs' in this.info)) this.info.tableCompositeIDs = {};
 		
 		this.grid = new ACFlexGrid(this.rootNode, { rowHeights:['10px', 'auto', '36px'], colWidths:['100%'] });
 		
@@ -51,7 +51,7 @@ class LSImportWindow extends ACController
 			{caption: 'Set Skip Tables', icon: 'reject.png', action: this.setTables.bind(this, 'skipTables') },
 			{caption: 'Set Do Only Tables', icon: 'select.png', action: this.setTables.bind(this, 'doOnlyTables') },
 			{caption: 'Set Defaults', icon: 'defaults.png', action: this.setRules.bind(this, 'tableDefaults') },
-			{caption: 'Set Composite Parent IDs', icon: 'hierarchy.png', action: this.setRules.bind(this, 'tableCompositeParentIDs') },
+			{caption: 'Set Composite IDs', icon: 'hierarchy.png', action: this.setRules.bind(this, 'tableCompositeIDs') },
 			{caption: 'Kill Queue', icon: 'kill.png', action: this.killQueue.bind(this) },
 			{caption: 'Clear Unchanged', icon: 'clear.png', action: this.clearUnchanged.bind(this) }
 		]);
@@ -350,24 +350,31 @@ class LSImportWindow extends ACController
 			// order number vars
 			var lastParentCompositeID = null;
 			var orderNumber = null;
+			var compositeIDs = [];
 			
 			this.sheetEntries[sheetName].forEach(entry => {
 				var htmlRow = AC.create('tr', htmlTable);
 				
-				// automatically compose order number
+				// compose parent and self composite IDs
 				var parentCompositeID = null;
-				
-				if (tableName in this.info.tableCompositeParentIDs) {
-					var compositeParentIDs = this.info.tableCompositeParentIDs[tableName];
-					var bits = [];
-					compositeParentIDs.forEach(fieldName => {
-						if (!(fieldName in entry)) {
-							bits = [];
-							return;
+				var compositeID = null;
+				for (let compositeKey of ['parent', 'self']) {
+					if (tableName in this.info.tableCompositeIDs && compositeKey in this.info.tableCompositeIDs[tableName]) {
+						var fieldNames = this.info.tableCompositeIDs[tableName][compositeKey];
+						var bits = [];
+						fieldNames.forEach(fieldName => {
+							if (!(fieldName in entry)) {
+								bits = [];
+								return;
+							}
+							bits.push(entry[fieldName]);
+						});
+						if (bits.length > 0) {
+							let currentCompositeID = bits.join(':');
+							if (compositeKey == 'parent') parentCompositeID = currentCompositeID;
+							else compositeID = currentCompositeID;
 						}
-						bits.push(entry[fieldName]);
-					});
-					if (bits.length > 0) parentCompositeID = bits.join(':');
+					}
 				}
 				
 				if (parentCompositeID) {
@@ -375,10 +382,20 @@ class LSImportWindow extends ACController
 					if (parentCompositeID != lastParentCompositeID) {
 						orderNumber = 1;
 						entry.ORDER_NUMBER = orderNumber;
+						if (compositeIDs.length > 0) this.checkForOrphans(
+							tableName, this.tableKeys[tableName], 
+							this.info.tableCompositeIDs[tableName], 
+							lastParentCompositeID, compositeIDs, 
+							htmlRow
+						);
 						lastParentCompositeID = parentCompositeID;
+						compositeIDs = [];
 					} else {
 						orderNumber++;
 						entry.ORDER_NUMBER = orderNumber;
+					}
+					if (compositeID) {
+						compositeIDs.push(compositeID);
 					}
 				}
 				
@@ -468,6 +485,14 @@ class LSImportWindow extends ACController
 					}
 				});
 			});
+			
+			// check for orphans on last recordset
+			if (lastParentCompositeID && compositeIDs.length > 0) this.checkForOrphans(
+				tableName, this.tableKeys[tableName], 
+				this.info.tableCompositeIDs[tableName], 
+				lastParentCompositeID, compositeIDs, 
+				htmlTable
+			);
 		});
 				
 		this.generateBtn = AC.create('button', this.outputArea);
@@ -495,6 +520,54 @@ class LSImportWindow extends ACController
 			});
 			this.outputArea.scrollTop = this.outputArea.scrollHeight;
 		};
+	}
+	
+	checkForOrphans(tableName, selectFields, compositorKeys, parentCompositeID, compositeIDs, node)
+	{
+		if (this.info.dbType != MSSQL) return;
+		
+		DB.query(
+			"SELECT " + this.quot.L + selectFields.join(this.quot.R + ', ' + this.quot.L) + this.quot.R + " " + 
+			"FROM " + tableName + " " + 
+			"WHERE " + compositorKeys.parent.join(" + ':' + ") + " = '" + parentCompositeID + "' " + 
+			"AND " + compositorKeys.self.join(" + ':' + ") + " NOT IN ('" + compositeIDs.join("', '") + "')"
+		, rows => {
+			rows.forEach(row => {
+				var htmlRow = AC.create('tr');
+				htmlRow.style.backgroundColor = '#f2dede';
+				htmlRow.style.color = '#a94442';
+				var compositeIDBits = [];
+				for (let key in row) {
+					let htmlCell = AC.create('td', htmlRow);
+					htmlCell.textContent = row[key];
+				}
+				
+				for (let key of compositorKeys.self) {
+					compositeIDBits.push(row[key.toLowerCase()]);
+				}
+				
+				// DELETE control
+				if (compositeIDBits.length > 0) {
+					var ctrlCell = AC.create('td', htmlRow);
+					var labelCtrl = AC.create('label', ctrlCell);
+					labelCtrl.style.fontWeight = 'bold';
+					labelCtrl.textContent = 'DELETE';
+					var checkCtrl = AC.create('input', labelCtrl);
+					checkCtrl.type = 'checkbox';
+					checkCtrl.checked = true;
+					checkCtrl.title = 
+						"DELETE FROM " + tableName + "\r\n" + 
+						"WHERE " + compositorKeys.parent.join(" + ':' + ") + " = '" + parentCompositeID + "'\r\n" + 
+						"AND " + compositorKeys.self.join(" + ':' + ") + " = '" + compositeIDBits.join(":") + "'";
+				}
+						
+				if (node.tagName == 'TR') {
+					node.parentElement.insertBefore(htmlRow, node);
+				} else {
+					node.appendChild(htmlRow);
+				}
+			});
+		});
 	}
 	
 	static clauseBody(fieldNames, entry, isInsert, quot)
