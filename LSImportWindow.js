@@ -474,7 +474,13 @@ class LSImportWindow extends ACController
 							query += ";\r\nINSERT INTO versions (table_name, name, version) VALUES('"+ tableName +"', '"+ entry.NAME +"', 1)";
 						checkCtrl.title = query;
 					}
-				}, null, e => {
+				}, errorText => {
+					htmlTable.style.display = 'table';
+					var td = AC.create('td', htmlRow);
+					td.textContent = errorText;
+					td.style.color = 'red';
+					td.colSpan = this.tableKeys[tableName].length;
+				}, e => {
 					executedSelectQueryCount++;
 					if (this.generateBtn) {
 						this.generateBtn.textContent = executedSelectQueryCount + ' / ' + selectQueryCount;

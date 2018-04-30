@@ -11,6 +11,7 @@ class LSTableManager extends ACController
 		
 		this.itemType = 'ANALYSIS';
 		this.keyFields = ['NAME', 'VERSION'];
+		this.itemSections = [];
 		
 		var listContainer = new ACStaticCell(this.grid.cell(0,0));
 		listContainer.style.height = '100%';
@@ -110,23 +111,24 @@ class LSTableManager extends ACController
 				}
 			});
 			
-			if (!wasSameItemFound && Array.from(this.grid.cell(0,1).children).length > 1) this.grid.cell(0,1).lastChild.remove();
+			if (!wasSameItemFound) this.clearRightPane();
 			//else console.log('TODO: Redraw item in 0,1');
 			
 			if (typeof thenFn !== 'undefined' && typeof thenFn.constructor == 'Function') thenFn();
 		});
 		
-		this.vb.clearItems();
+		//this.vb.clearItems();
 		DB.query("\
 			SELECT name, pretty_name \
 			FROM table_master \
 			WHERE '" + this.itemType + "' IN (name, parent_table) \
 			ORDER BY (CASE WHEN parent_table IS NULL THEN 0 ELSE 1 END), pretty_name", 
 		subrows => {
-			subrows.forEach(subrow => {
+			/*subrows.forEach(subrow => {
 				var item = this.vb.addItem({caption: subrow.pretty_name});
 				if (this.vb.itemCount() == 1) this.vb.setActiveItem(item);
-			});
+			});*/
+			this.itemSections = subrows;
 		});
 	}
 	
@@ -139,6 +141,15 @@ class LSTableManager extends ACController
 			case 'save': this.saveItem(); break;
 			case 'eof': this.exit(); break;
 		}
+	}
+	
+	clearRightPane()
+	{
+		for (let node of this.grid.cell(0,1).children) {
+			if (node.tagName == 'AC-FLEXGRIDSIZER') continue;
+			node.remove();
+		}
+		this.vb.clearItems();
 	}
 	
 	selectTable()
@@ -161,7 +172,7 @@ class LSTableManager extends ACController
 				this.itemType = evt.detail.id;
 				this.keyFields = evt.detail.keyFields.split(' ');
 				dialog.close();
-				if (Array.from(this.grid.cell(0,1).children).length > 1) this.grid.cell(0,1).lastChild.remove();
+				this.clearRightPane();
 				this.lcScrollTop = 0;
 				this.loadData();
 			});
@@ -174,7 +185,7 @@ class LSTableManager extends ACController
 	selectItem(evt)
 	{
 		var item = evt.detail.item;
-		if (Array.from(this.grid.cell(0,1).children).length > 1) this.grid.cell(0,1).lastChild.remove();
+		this.clearRightPane();
 		
 		DB.query("\
 			SELECT * \
@@ -183,7 +194,7 @@ class LSTableManager extends ACController
 			" + (this.keyFields.includes('VERSION') ? "AND version = (SELECT version FROM versions WHERE table_name = '" + this.itemType + "' AND name = x.name)" : "") + " \
 		", rows => {
 			if (rows.length < 1) {
-				if (Array.from(this.grid.cell(0,1).children).length > 1) this.grid.cell(0,1).lastChild.remove();
+				this.clearRightPane();
 				var sc = new ACStaticCell(this.grid.cell(0,1));
 				sc.textContent = this.itemType + ' ' + item.dataset.id + ' not found in current database';
 				sc.style.color = 'red';
@@ -199,7 +210,7 @@ class LSTableManager extends ACController
 				WHERE fm.table_name = '${this.itemType}' AND fm.hidden = 'F' AND fm.field_name NOT IN ('NAME', 'CHANGED_BY', 'CHANGED_ON', 'REMOVED') 
 				ORDER BY (CASE WHEN ft.group_title IS NULL THEN 0 ELSE 1 END), ft.group_title, ft.order_number 
 			`, schemaRows => {
-				if (Array.from(this.grid.cell(0,1).children).length > 1) this.grid.cell(0,1).lastChild.remove();
+				this.clearRightPane();
 				
 				var groupedSchemaRows = schemaRows.reduce((arr, x) => {
 					if (!arr[x.group_title]) arr[x.group_title] = [];
@@ -208,7 +219,10 @@ class LSTableManager extends ACController
 				}, {});
 				
 				// Item Info and Details FlexGrid
-				var itemInfoAndDetailsGrid = new ACFlexGrid(this.grid.cell(0,1), { rowHeights:['40px', 'auto'], colWidths:['100%'] });
+				var itemNode = new ACStaticCell(this.grid.cell(0,1));
+				itemNode.style.height = '100%';
+				
+				var itemInfoAndDetailsGrid = new ACFlexGrid(itemNode, { rowHeights:['40px', 'auto'], colWidths:['100%'] });
 				
 				/*// MenuBar
 				var nb = new ACMenuBar(itemInfoAndDetailsGrid.cell(0,0));
@@ -372,7 +386,7 @@ class LSTableManager extends ACController
 									control.addEventListener('browse', this.browseLinkedItem.bind(this, {
 										type: schemaRows[s].link_table, 
 										keyFields: schemaRows[s].key_fields, 
-										descFields:schemaRows[s].description_fields.trim()
+										descFields: schemaRows[s].description_fields
 									}));
 								}
 							break;
@@ -397,6 +411,15 @@ class LSTableManager extends ACController
 					srcCtrl.getSession().setUseSoftTabs(false);
 					srcCtrl.setValue(rows[0].source_code, -1);
 				}
+				
+				// Item Sections
+				this.vb.clearItems();
+				this.itemSections.forEach(subrow => {
+					var itemInfo = { caption: subrow.pretty_name };
+					if (subrow.name == this.itemType) itemInfo.targetNode = itemNode;
+					var item = this.vb.addItem(itemInfo);
+					if (this.vb.itemCount() == 1) this.vb.setActiveItem(item);
+				});
 			});
 		});
 	}
@@ -496,6 +519,7 @@ class LSTableManager extends ACController
 	{
 		// itemInfo: {type:, keyFields:, descFields:}
 		var control = evt.srcElement;
+		var descFields = itemInfo.descFields != null ? itemInfo.descFields.trim() : '';
 		var selFields = itemInfo.keyFields.split(' ').concat(itemInfo.descFields.split(' '));
 		
 		DB.query("\
