@@ -119,7 +119,7 @@ class LSTableManager extends ACController
 		
 		//this.vb.clearItems();
 		DB.query("\
-			SELECT name, pretty_name \
+			SELECT name, pretty_name, key_fields \
 			FROM table_master \
 			WHERE '" + this.itemType + "' IN (name, parent_table) \
 			ORDER BY (CASE WHEN parent_table IS NULL THEN 0 ELSE 1 END), pretty_name", 
@@ -185,6 +185,7 @@ class LSTableManager extends ACController
 	selectItem(evt)
 	{
 		var item = evt.detail.item;
+		var itemID = item.dataset.id;
 		this.clearRightPane();
 		
 		DB.query("\
@@ -414,9 +415,47 @@ class LSTableManager extends ACController
 				
 				// Item Sections
 				this.vb.clearItems();
+				var childNodes = {};
 				this.itemSections.forEach(subrow => {
 					var itemInfo = { caption: subrow.pretty_name };
+					
 					if (subrow.name == this.itemType) itemInfo.targetNode = itemNode;
+					else {
+						var keyFields = subrow.key_fields.trim().split(' ');
+						childNodes[subrow.name] = itemInfo.targetNode = new ACStaticCell(this.grid.cell(0,1));
+						itemInfo.targetNode.style.height = '100%';
+						itemInfo.targetNode.style.overflow = 'auto';
+						
+						let versionClause = this.keyFields.includes('VERSION') ? "AND version = (SELECT version FROM versions WHERE table_name = '" + this.itemType + "' AND name = '" + itemID + "')" : "";
+						DB.query(`
+							SELECT * 
+							FROM ${subrow.name}
+							WHERE ${this.itemType} = '${itemID}'
+							${versionClause}
+							ORDER BY order_number
+						`, childRows => {
+							if (childRows.length < 1) {
+								childNodes[subrow.name].textContent = '0 items';
+								childNodes[subrow.name].style.color = 'grey';
+							}
+							childRows.forEach(row => {
+								let keyValues = [];
+								for (let key of keyFields) {
+									if ([this.itemType, 'VERSION'].includes(key)) continue;
+									keyValues.push(row[key.toLowerCase()]);
+								}
+								
+								var kvv = new ACKeyValueView(childNodes[subrow.name], { caption: keyValues.length > 0 ? keyValues.join(': ') : 'Child Item' });
+								for (var key in row) {
+									var value = row[key];
+									if (!value) continue;
+									var field = kvv.addField(key.toUpperCase());
+									field.textContent = value;
+								}
+							});
+						});
+					}
+					
 					var item = this.vb.addItem(itemInfo);
 					if (this.vb.itemCount() == 1) this.vb.setActiveItem(item);
 				});
