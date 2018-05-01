@@ -33,7 +33,7 @@ class LSQueryWindow extends ACController
 		modeToolBar.setItems([
 			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) },
 			{caption: 'Create', icon: 'add.png', tooltip: 'Create (⌘N)', action: this.createItem.bind(this) },
-			{caption: 'Open', icon: 'open.png', tooltip: 'Open (⌘O)', action: this.openItem.bind(this) }
+			{caption: 'Open...', icon: 'open.png', tooltip: 'Open (⌘O)', action: this.openItem.bind(this) }
 		]);
 		
 		this.grid.cell(1,0).style.borderRight = '1px solid #ddd';

@@ -15,7 +15,7 @@ class LSScriptWindow extends ACController
 		}
 		catch (e) {}
 		if (!('scripts' in this.info)) this.info.scripts = {};
-		if (!('scriptPaneWidth' in this.info)) this.info.scriptPaneWidth = '212px';
+		if (!('scriptPaneWidth' in this.info)) this.info.scriptPaneWidth = '222px';
 		if (!('editorPaneHeight' in this.info)) this.info.editorPaneHeight = '50%';
 		if (!('leftPaneVisible' in this.info)) this.info.leftPaneVisible = true;
 		if (!('editorVisible' in this.info)) this.info.editorVisible = true;
@@ -32,8 +32,14 @@ class LSScriptWindow extends ACController
 		modeToolBar.setItems([
 			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) },
 			{caption: 'Create', icon: 'add.png', tooltip: 'Create (⌘N)', action: this.createItem.bind(this) },
-			{caption: 'Open', icon: 'open.png', tooltip: 'Open (⌘O)', action: this.openItem.bind(this) }
+			{caption: 'Open...', icon: 'open.png', tooltip: 'Open (⌘O)', action: this.openItem.bind(this) }
 		]);
+		
+		this.upCtrl = AC.create('input', modeToolBar);
+		this.upCtrl.accept = ".js,.json";
+		this.upCtrl.type = 'file';
+		this.upCtrl.style.display = 'none';
+		this.upCtrl.addEventListener('change', this.importFile.bind(this));
 		
 		var listContainer = new ACStaticCell(this.grid.cell(1,0));
 		listContainer.style.height = '100%';
@@ -51,11 +57,18 @@ class LSScriptWindow extends ACController
 			var item = e.detail.item;
 			item.contextMenu = {
 				'Rename': this.renameItem.bind(this, item),
+				'Export': this.exportScript.bind(this, item),
 				'Remove': this.removeItem.bind(this, item)
 			};
 			item.contextMenuScrollDismisser = listContainer;
 			item.addEventListener('contextmenu', ACContextMenu.open);
 		});
+		this.listBox.contextMenu = {
+			'Export All': this.exportAll.bind(this),
+			'Import...': () => this.upCtrl.click()
+		};
+		this.listBox.contextMenuScrollDismisser = listContainer;
+		this.listBox.addEventListener('contextmenu', ACContextMenu.open);
 		
 		var modeActionBar = new ACToolBar(this.grid.cell(2,0));
 		modeActionBar.setStyle(ST_BORDER_TOP | ST_BORDER_RIGHT);
@@ -72,8 +85,7 @@ class LSScriptWindow extends ACController
 		this.itemToolBar.style.borderBottomColor = '#17817b';
 		this.itemToolBar.setItems([
 			{caption: 'Exit', icon: 'quit.png', tooltip: 'Exit (⌘D)', action: this.exit.bind(this) },
-			{caption: 'Run', icon: 'play.png', tooltip: 'Run (⌘↵)', action: this.runScript.bind(this) },
-			{caption: 'Export', icon: 'export.png', action: this.exportScript.bind(this) }
+			{caption: 'Run', icon: 'play.png', tooltip: 'Run (⌘↵)', action: this.runScript.bind(this) }
 		]);
 		this.itemToolBar.firstChild.firstChild.style.display = 'none';
 		
@@ -151,7 +163,7 @@ class LSScriptWindow extends ACController
 		switch (command) {
 			case 'new': this.createItem(); break;
 			case 'open': this.openItem(); break;
-			case 'save': this.saveItem(); break;
+			case 'save': this.saveCurrentItem(); break;
 			case 'enter': this.runScript(); break;
 			case 'layout': this.resetLayout(); break;
 			case 'eof': this.exit(); break;
@@ -174,7 +186,7 @@ class LSScriptWindow extends ACController
 		this.editor.focus();
 	}
 	
-	saveItem()
+	saveCurrentItem()
 	{
 		var item = this.listBox.activeItem;
 		if (item) item.value = this.editor.getValue();
@@ -261,7 +273,7 @@ class LSScriptWindow extends ACController
 	
 	runScript()
 	{
-		this.saveItem();
+		this.saveCurrentItem();
 		this.contentContainer.clear();
 		var script = this.editor.getValue();
 		var lsListBox = this.listBox;
@@ -287,7 +299,7 @@ class LSScriptWindow extends ACController
 	
 	onDetached()
 	{
-		this.saveItem();
+		this.saveCurrentItem();
 		this.contentContainerScrollTop = this.contentContainer.scrollTop;
 		if ('onDetached' in this.contentContainer) this.contentContainer.onDetached.call(this.contentContainer);
 	}
@@ -305,20 +317,89 @@ class LSScriptWindow extends ACController
 		localStorage.setItem('LSScriptWindow', JSON.stringify(this.info));
 	}
 	
-	exportScript()
+	exportScript(item)
 	{
 		var selectedItem = this.listBox.getSelectedItem();
-		var contents = this.editor.getValue();
-		if (!contents || !selectedItem) return;
+		if (item == selectedItem) item.value = this.editor.getValue();
 		
 		var element = AC.create('a', this.rootNode);
-		element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(contents));
-		element.setAttribute('download', selectedItem.dataset.id + '.js');
-		
+		element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(item.value));
+		element.setAttribute('download', item.dataset.id + '.js');
 		element.style.display = 'none';
-		
 		element.click();
 		element.remove();
+	}
+	
+	exportAll()
+	{
+		this.saveCurrentItem();
+		
+		var element = AC.create('a', this.rootNode);
+		element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.info.scripts, null, '\t')));
+		element.setAttribute('download', this.constructor.name + '.json');
+		element.style.display = 'none';
+		element.click();
+		element.remove();
+	}
+	
+	importFile(e)
+	{
+		var file = this.upCtrl.files.item(0);
+		if (!file) return;
+		
+		var nameBits = file.name.split('.');
+		var extension = nameBits.pop();
+		var name = nameBits.join('.');
+		
+		if (!['js', 'json'].includes(extension)) {
+			alert('Unable to import unrecognised file format.');
+			return;
+		}
+		
+		var fileReader = new FileReader();
+		fileReader.onload = () => {
+			var fileContents = fileReader.result;
+			if (extension == 'js') {
+				var counter = 1;
+				var importName = name;
+				while (this.listBox.getItemByName(importName)) {
+					counter++;
+					importName = name + ' ' + counter;
+				}
+				var item = this.listBox.addItem(importName, importName);
+				item.value = fileContents;
+				this.listBox.selectItem(item);
+			} else {
+				var importPages;
+				try {
+					importPages = JSON.parse(fileContents);
+				}
+				catch (e) {
+					alert('Unable to read JSON.');
+					return;
+				}
+				var importCount = 0;
+				for (let key in importPages) {
+					let value = importPages[key];
+					if (typeof value != 'string') continue;
+					var counter = 1;
+					var importName = key;
+					while (this.listBox.getItemByName(importName)) {
+						counter++;
+						importName = key + ' ' + counter;
+					}
+					var item = this.listBox.addItem(importName, importName);
+					item.value = value;
+					importCount++;
+				}
+				alert('Imported ' + importCount + ' scripts.');
+			}
+		};
+		fileReader.onerror = e => {
+			alert('Unable to read file.');
+		};
+		fileReader.readAsText(file);
+		this.upCtrl.value = '';
 	}
 	
 	togglePane(forceOn)
@@ -339,7 +420,7 @@ class LSScriptWindow extends ACController
 	
 	resetLayout()
 	{
-		this.info.scriptPaneWidth = this.grid.cell(0,0).style.width = '212px';
+		this.info.scriptPaneWidth = this.grid.cell(0,0).style.width = '222px';
 		this.info.editorPaneHeight = this.itemGrid.cell(0,0).style.height = '50%';
 		this.togglePane(true);
 		this.toggleEditor(true);
