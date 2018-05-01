@@ -39,6 +39,12 @@ class LSQueryWindow extends ACController
 		this.grid.cell(1,0).style.borderRight = '1px solid #ddd';
 		this.grid.cell(1,0).style.verticalAlign = 'top';
 		
+		this.upCtrl = AC.create('input', modeToolBar);
+		this.upCtrl.accept = ".sql,.json";
+		this.upCtrl.type = 'file';
+		this.upCtrl.style.display = 'none';
+		this.upCtrl.addEventListener('change', this.importFile.bind(this));
+		
 		this.listContainer = new ACStaticCell(this.grid.cell(1,0));
 		this.listContainer.style.height = '100%';
 		this.listContainer.style.overflow = 'auto';
@@ -60,13 +66,15 @@ class LSQueryWindow extends ACController
 			var item = e.detail.item;
 			item.contextMenu = {
 				'Rename': this.renameItem.bind(this, item),
+				'Export': this.exportPage.bind(this, item),
 				'Remove': this.removeItem.bind(this, item)
 			};
 			item.contextMenuScrollDismisser = this.listContainer;
 			item.addEventListener('contextmenu', ACContextMenu.open);
 		});
 		this.listBox.contextMenu = {
-			'Download All': this.exportAll.bind(this)
+			'Export All': this.exportAll.bind(this),
+			'Import...': () => this.upCtrl.click()
 		};
 		this.listBox.contextMenuScrollDismisser = this.listContainer;
 		this.listBox.addEventListener('contextmenu', ACContextMenu.open);
@@ -98,9 +106,6 @@ class LSQueryWindow extends ACController
 		var caption = 'Run All to XLSX';
 		this.xlsxButton = this.itemToolBar.addItem(
 			{caption: caption, icon: 'xlsx.png', dataset: { caption: caption }, action: this.prepareXLSX.bind(this) }
-		);
-		this.itemToolBar.addItem(
-			{caption: 'Export Queries', icon: 'export.png', action: this.exportPage.bind(this) }
 		);
 		this.itemToolBar.firstChild.firstChild.style.display = 'none';
 		
@@ -244,15 +249,14 @@ class LSQueryWindow extends ACController
 		localStorage.setItem('LSQueryWindow', JSON.stringify(this.info));
 	}
 	
-	exportPage()
+	exportPage(item)
 	{
 		var selectedItem = this.listBox.getSelectedItem();
-		var contents = this.editor.getValue();
-		if (!contents || !selectedItem) return;
+		if (item == selectedItem) item.value = this.editor.getValue();
 		
 		var element = AC.create('a', this.rootNode);
-		element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(contents));
-		element.setAttribute('download', selectedItem.dataset.id + '.sql');
+		element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(item.value));
+		element.setAttribute('download', item.dataset.id + '.sql');
 		element.style.display = 'none';
 		element.click();
 		element.remove();
@@ -268,6 +272,66 @@ class LSQueryWindow extends ACController
 		element.style.display = 'none';
 		element.click();
 		element.remove();
+	}
+	
+	importFile(e)
+	{
+		var file = this.upCtrl.files.item(0);
+		if (!file) return;
+		
+		var nameBits = file.name.split('.');
+		var extension = nameBits.pop();
+		var name = nameBits.join('.');
+		
+		if (!['sql', 'json'].includes(extension)) {
+			alert('Unable to import unrecognised file format.');
+			return;
+		}
+		
+		var fileReader = new FileReader();
+		fileReader.onload = () => {
+			var fileContents = fileReader.result;
+			if (extension == 'sql') {
+				var counter = 1;
+				var importName = name;
+				while (this.listBox.getItemByName(importName)) {
+					counter++;
+					importName = name + ' ' + counter;
+				}
+				var item = this.listBox.addItem(importName, importName);
+				item.value = fileContents;
+				this.listBox.selectItem(item);
+			} else {
+				var importPages;
+				try {
+					importPages = JSON.parse(fileContents);
+				}
+				catch (e) {
+					alert('Unable to read JSON.');
+					return;
+				}
+				var importCount = 0;
+				for (let key in importPages) {
+					let value = importPages[key];
+					if (typeof value != 'string') continue;
+					var counter = 1;
+					var importName = key;
+					while (this.listBox.getItemByName(importName)) {
+						counter++;
+						importName = key + ' ' + counter;
+					}
+					var item = this.listBox.addItem(importName, importName);
+					item.value = value;
+					importCount++;
+				}
+				alert('Imported ' + importCount + ' pages.');
+			}
+		};
+		fileReader.onerror = e => {
+			alert('Unable to read file.');
+		};
+		fileReader.readAsText(file);
+		this.upCtrl.value = '';
 	}
 	
 	selectItem(evt)
@@ -582,6 +646,7 @@ class LSQueryWindow extends ACController
 		this.info.editorHeight = this.itemGrid.cell(0,0).style.height = '50%';
 		this.togglePane(true);
 		this.toggleEditor(true);
+		this.editor.resize(true);
 	}
 	
 	displayTableInfo(tableNode, tableName)
