@@ -411,19 +411,20 @@ class LSImportWindow extends ACController
 					if (!oldRecord) changed = true;
 					
 					this.tableKeys[tableName].forEach(key => {
+						var keyLower = key.toLowerCase();
 						var td = AC.create('td', htmlRow);
 						
 						// standardise line breaks
 						if (typeof entry[key] == 'string') entry[key] = entry[key].replace(/\r/g, '');
-						if (oldRecord && key in oldRecord && typeof oldRecord[key.toLowerCase()] == 'string') 
-							oldRecord[key.toLowerCase()] = oldRecord[key.toLowerCase()].replace(/\r/g, '');
+						if (oldRecord && keyLower in oldRecord && typeof oldRecord[keyLower] == 'string') 
+							oldRecord[keyLower] = oldRecord[keyLower].replace(/\r/g, '');
 						
 						// are values same?
-						if (oldRecord && entry[key] != oldRecord[key.toLowerCase()]) {
+						if (oldRecord && entry[key] != oldRecord[keyLower]) {
 							changed = true;
 							td.style.backgroundColor = 'yellow';
 							var oldContentSpan = AC.create('span', td);
-							oldContentSpan.textContent = oldRecord[key.toLowerCase()];
+							oldContentSpan.textContent = oldRecord[keyLower];
 							oldContentSpan.style.textDecoration = 'line-through';
 						}
 						var newContentSpan = AC.create('span', td);
