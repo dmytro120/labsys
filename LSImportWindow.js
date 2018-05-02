@@ -531,13 +531,14 @@ class LSImportWindow extends ACController
 	
 	checkForOrphans(tableName, selectFields, compositorKeys, parentCompositeID, compositeIDs, node)
 	{
-		if (this.info.dbType != MSSQL) return;
+		let parentCompositeKey = LSImportWindow.compositeFieldID(compositorKeys.parent);
+		let selfCompositeKey = LSImportWindow.compositeFieldID(compositorKeys.self);
 		
 		DB.query(
 			"SELECT " + this.quot.L + selectFields.join(this.quot.R + ', ' + this.quot.L) + this.quot.R + " " + 
 			"FROM " + tableName + " " + 
-			"WHERE " + compositorKeys.parent.join(" + ':' + ") + " = '" + parentCompositeID + "' " + 
-			"AND " + compositorKeys.self.join(" + ':' + ") + " NOT IN ('" + compositeIDs.join("', '") + "')"
+			"WHERE " + parentCompositeKey + " = '" + parentCompositeID + "' " + 
+			"AND " + selfCompositeKey + " NOT IN ('" + compositeIDs.join("', '") + "')"
 		, rows => {
 			rows.forEach(row => {
 				var htmlRow = AC.create('tr');
@@ -559,13 +560,17 @@ class LSImportWindow extends ACController
 					var labelCtrl = AC.create('label', ctrlCell);
 					labelCtrl.style.fontWeight = 'bold';
 					labelCtrl.textContent = 'DELETE';
+					
 					var checkCtrl = AC.create('input', labelCtrl);
 					checkCtrl.type = 'checkbox';
 					checkCtrl.checked = true;
+					
+					let parentCompositeKey = LSImportWindow.compositeFieldID(compositorKeys.parent);
+					let selfCompositeKey = LSImportWindow.compositeFieldID(compositorKeys.self);
 					checkCtrl.title = 
 						"DELETE FROM " + tableName + "\r\n" + 
-						"WHERE " + compositorKeys.parent.join(" + ':' + ") + " = '" + parentCompositeID + "'\r\n" + 
-						"AND " + compositorKeys.self.join(" + ':' + ") + " = '" + compositeIDBits.join(":") + "'";
+						"WHERE " + parentCompositeKey + " = '" + parentCompositeID + "'\r\n" + 
+						"AND " + selfCompositeKey + " = '" + compositeIDBits.join(":") + "'";
 				}
 						
 				if (node.tagName == 'TR') {
@@ -603,5 +608,17 @@ class LSImportWindow extends ACController
 		this.outputArea.querySelectorAll('.unchanged').forEach(node => {
 			node.remove();
 		});
+	}
+	
+	static compositeFieldID(keys)
+	{
+		let output = '';
+		let lastK = keys.length - 1;
+		for (let k = 0; k < keys.length; k++) {
+			let key = keys[k];
+			output = output.length > 0 ? "CONCAT(" + output + ", " + key + ")" : key;
+			if (k != lastK) output = "CONCAT(" + output + ", ':')"
+		}
+		return output;
 	}
 }
