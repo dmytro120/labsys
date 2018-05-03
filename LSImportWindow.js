@@ -457,7 +457,7 @@ class LSImportWindow extends ACController
 						var fieldsToUpdate = Object.keys(entry).filter(k => !keyFields.includes(k));
 						var updateClauseBody = LSImportWindow.clauseBody(fieldsToUpdate, entry, UPDATE_CLAUSE, this.quot);
 						var query = "UPDATE " + tableName + "\r\nSET " + updateClauseBody + "\r\nWHERE " + whereClauseBody;
-						checkCtrl.title = query;
+						checkCtrl.title = checkCtrl.dataset.query1 = query;
 					} else {
 						htmlRow.style.backgroundColor = 'LightSkyBlue';
 						textCtrl.textContent = "INSERT";
@@ -471,9 +471,12 @@ class LSImportWindow extends ACController
 						}
 						var insertClauseBody = LSImportWindow.clauseBody(fieldsToInsert, entry, INSERT_CLAUSE, this.quot);
 						var query = "INSERT INTO " + tableName + insertClauseBody;
-						if (this.versionedMainTables.includes(tableName) && entry.NAME) 
-							query += ";\r\nINSERT INTO versions (table_name, name, version) VALUES('"+ tableName +"', '"+ entry.NAME +"', 1)";
-						checkCtrl.title = query;
+						checkCtrl.title = checkCtrl.dataset.query1 = query;
+						if (this.versionedMainTables.includes(tableName) && entry.NAME) {
+							let query2 = "INSERT INTO versions (table_name, name, version) VALUES('"+ tableName +"', '"+ entry.NAME +"', 1)";
+							checkCtrl.dataset.query2 = query2;
+							checkCtrl.title += ";\r\n\r\n" + query2;
+						}
 					}
 				}, errorText => {
 					htmlTable.style.display = 'table';
@@ -510,7 +513,11 @@ class LSImportWindow extends ACController
 		this.generateBtn.onclick = evt => {
 			queryContainer.clear();
 			evt.srcElement.parentElement.querySelectorAll("input:checked").forEach(checkCtrl => {
-				checkCtrl.title.split(';').forEach(query => {
+				var queries = [];
+				for (let dsKey in checkCtrl.dataset) {
+					if (dsKey.substring(0,5) == 'query') queries.push(checkCtrl.dataset[dsKey]);
+				}
+				queries.forEach(query => {
 					var qCtrl = new ACStaticCell(queryContainer);
 					qCtrl.style.width = qCtrl.style.height = '20px';
 					qCtrl.style.border = '1px solid grey';
@@ -567,7 +574,7 @@ class LSImportWindow extends ACController
 					
 					let parentCompositeKey = LSImportWindow.compositeFieldID(compositorKeys.parent);
 					let selfCompositeKey = LSImportWindow.compositeFieldID(compositorKeys.self);
-					checkCtrl.title = 
+					checkCtrl.title = checkCtrl.dataset.query1 = 
 						"DELETE FROM " + tableName + "\r\n" + 
 						"WHERE " + parentCompositeKey + " = '" + parentCompositeID + "'\r\n" + 
 						"AND " + selfCompositeKey + " = '" + compositeIDBits.join(":") + "'";
