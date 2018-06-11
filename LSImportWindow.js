@@ -538,6 +538,8 @@ class LSImportWindow extends ACController
 	
 	checkForOrphans(tableName, selectFields, compositorKeys, parentCompositeID, compositeIDs, node)
 	{
+		if (tableName == 'PRODUCT_SPEC') return;
+		
 		let parentCompositeKey = LSImportWindow.compositeFieldID(compositorKeys.parent);
 		let selfCompositeKey = LSImportWindow.compositeFieldID(compositorKeys.self);
 		
