@@ -347,6 +347,7 @@ class LSQueryWindow extends ACController
 		this.editor.renderer.$cursorLayer.element.style.display = "";
 		
 		this.resultContainer.clear();
+		this.spreadsheet = null;
 		
 		this.editor.focus();
 	}
@@ -420,6 +421,7 @@ class LSQueryWindow extends ACController
 				this.editor.setReadOnly(true);
 				this.editor.renderer.$cursorLayer.element.style.display = 'none';
 				this.resultContainer.clear();
+				this.spreadsheet = null;
 			}
 		}
 	}
@@ -463,14 +465,13 @@ class LSQueryWindow extends ACController
 				}
 			}
 		}
-		var query = queriesString.substring(startPos, endPos).trim();
-		
-		if (!query) {
-			this.resultContainer.clear();
-			return;
-		}
 		
 		this.resultContainer.clear();
+		this.spreadsheet = null;
+		
+		var query = queriesString.substring(startPos, endPos).trim();
+		if (!query) return;
+		
 		this.enableQueryControls(false);
 		
 		// fix control jump issue
@@ -489,27 +490,42 @@ class LSQueryWindow extends ACController
 				return;
 			}
 			
-			var table = AC.create('table', this.resultContainer);
-			table.classList.add('table', 'table-hover', 'table-condensed');
-			table.style.width = 'auto';
-			table.style.margin = '0 auto';
-			
-			var tbody = AC.create('tbody', table);
-			var tr = AC.create('tr', tbody);
-			info.colHeadings.forEach(heading => {
-				var th = AC.create('th', tr);
-				th.textContent = heading == heading.toLowerCase() ? heading.toUpperCase() : heading;
-			});
-			
-			rows.forEach(row => {
-				tr = AC.create('tr', tbody);
-				for (var key in row) {
-					var value = row[key];
-					if (value == null) value = "";
-					var td = AC.create('td', tr);
-					td.textContent = value;
-				}
-			});
+			if (rows.length > 0 && rows.length <= 100) {
+				this.spreadsheet = canvasDatagrid({
+					parentNode: this.resultContainer,
+					editable: false,
+					autoResizeColumns: true
+				});
+				this.spreadsheet.style.width = this.spreadsheet.style.height = '100%';
+				this.spreadsheet.style.cellBorderWidth = 1;
+				this.spreadsheet.data = rows;
+				this.spreadsheet.schema.forEach(header => {
+					header.title = header.name != header.name.toLowerCase() ? header.name : header.name.toUpperCase();
+				});
+			} else {
+				this.spreadsheet = null;
+				var table = AC.create('table', this.resultContainer);
+				table.classList.add('table', 'table-hover', 'table-condensed');
+				table.style.width = 'auto';
+				table.style.margin = '0 auto';
+				
+				var tbody = AC.create('tbody', table);
+				var tr = AC.create('tr', tbody);
+				info.colHeadings.forEach(heading => {
+					var th = AC.create('th', tr);
+					th.textContent = heading == heading.toLowerCase() ? heading.toUpperCase() : heading;
+				});
+				
+				rows.forEach(row => {
+					tr = AC.create('tr', tbody);
+					for (var key in row) {
+						var value = row[key];
+						if (value == null) value = "";
+						var td = AC.create('td', tr);
+						td.textContent = value;
+					}
+				});
+			}
 			
 		}, null, evt => {
 			this.enableQueryControls(true);
@@ -610,6 +626,19 @@ class LSQueryWindow extends ACController
 	
 	copyResults()
 	{
+		if (this.spreadsheet) {
+			var csv = LSQueryWindowTools.toCsv(this.spreadsheet.data, '"', String.fromCharCode(9));
+			console.log(csv);
+			navigator.clipboard.writeText(csv)
+			.then(() => {
+				
+			})
+			.catch(err => {
+				console.log('Something went wrong', err);
+			});
+			return;
+		}
+		
 		var resultTable = this.resultContainer.firstChild;
 		if (!resultTable) return;
 		
@@ -857,4 +886,79 @@ class LSQueryWindowTools
         // Return the parsed data.
         return( arrData );
     }
+	
+	/**
+	* Converts a value to a string appropriate for entry into a CSV table.  E.g., a string value will be surrounded by quotes.
+	* @param {string|number|object} theValue
+	* @param {string} sDelimiter The string delimiter.  Defaults to a double quote (") if omitted.
+	*/
+	static toCsvValue(theValue, sDelimiter) {
+		var t = typeof theValue;
+		var output;
+
+		if (typeof (sDelimiter) === "undefined" || sDelimiter === null) {
+			sDelimiter = '"';
+		}
+
+		if (theValue == null || t === "undefined" || t === null) {
+			output = "";
+		} else if (t === "string") {
+			output = sDelimiter + theValue + sDelimiter;
+		} else {
+			output = String(theValue);
+		}
+
+		return output;
+	}
+
+	/**
+	* Converts an array of objects (with identical schemas) into a CSV table.
+	* @param {Array} objArray An array of objects.  Each object in the array must have the same property list.
+	* @param {string} sDelimiter The string delimiter.  Defaults to a double quote (") if omitted.
+	* @param {string} cDelimiter The column delimiter.  Defaults to a comma (,) if omitted.
+	* @return {string} The CSV equivalent of objArray.
+	*/
+	static toCsv(objArray, sDelimiter, cDelimiter) {
+		var i, l, names = [], name, value, obj, row, output = "", n, nl;
+
+		// Initialize default parameters.
+		if (typeof (sDelimiter) === "undefined" || sDelimiter === null) {
+			sDelimiter = '"';
+		}
+		if (typeof (cDelimiter) === "undefined" || cDelimiter === null) {
+			cDelimiter = ",";
+		}
+
+		for (i = 0, l = objArray.length; i < l; i += 1) {
+			// Get the names of the properties.
+			obj = objArray[i];
+			row = "";
+			if (i === 0) {
+				// Loop through the names
+				for (name in obj) {
+					if (obj.hasOwnProperty(name)) {
+						names.push(name);
+						var title = name != name.toLowerCase() ? name : name.toUpperCase();
+						row += [sDelimiter, title, sDelimiter, cDelimiter].join("");
+					}
+				}
+				row = row.substring(0, row.length - 1);
+				output += row;
+			}
+
+			output += "\n";
+			row = "";
+			for (n = 0, nl = names.length; n < nl; n += 1) {
+				name = names[n];
+				value = obj[name];
+				if (n > 0) {
+					row += cDelimiter
+				}
+				row += LSQueryWindowTools.toCsvValue(value, '"');
+			}
+			output += row;
+		}
+
+		return output;
+	}
 }
